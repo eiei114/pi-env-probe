@@ -34,8 +34,10 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test": "node --test tests/*.test.mjs",
-    "ci": "npm run typecheck && npm test && npm run pack:check",
-    "pack:check": "npm pack --dry-run"
+    "ci": "npm run check",
+    "pack:check": "npm pack --dry-run",
+    "build": "tsc --noEmit",
+    "check": "npm run typecheck && npm test && npm run pack:check"
   },
   "pi": {
     "extensions": [

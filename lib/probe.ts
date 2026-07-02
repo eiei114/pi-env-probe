@@ -1,8 +1,8 @@
 /**
  * pi-env-probe — cross-platform environment diagnostics
  *
- * Returns compact JSON with shell detection, PATH analysis, and
- * non-ASCII path risk assessment.
+ * Returns compact JSON with shell detection, PATH analysis, runtime
+ * version probes, encoding detection, and non-ASCII path risk assessment.
  *
  * Every subprocess call is wrapped in try/catch. probe() never throws.
  */
@@ -17,6 +17,48 @@ export interface ProbeResult {
   bash_in_path: boolean;
   pwsh_in_path: boolean;
   path_separator: ";" | ":";
+  node_version: string | null;
+  bun_version: string | null;
+  python_version: string | null;
+  encoding: string;
+  risks: string[];
+}
+
+const EXEC_OPTS = { stdio: "pipe", encoding: "utf8" } as const;
+
+/**
+ * Run a version probe command and return trimmed stdout, or null on failure.
+ */
+function probeVersion(command: string): string | null {
+  try {
+    const stdout = execSync(command, EXEC_OPTS);
+    return stdout.trimEnd();
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Probe Python version — python3 first on POSIX, python on Windows.
+ */
+function probePythonVersion(): string | null {
+  if (process.platform === "win32") {
+    return probeVersion("python --version");
+  }
+
+  const python3 = probeVersion("python3 --version");
+  if (python3 !== null) {
+    return python3;
+  }
+
+  return probeVersion("python --version");
+}
+
+/**
+ * Detect locale encoding from process environment.
+ */
+function detectEncoding(): string {
+  return process.env.LC_CTYPE || process.env.LANG || "utf8";
 }
 
 /**
@@ -40,21 +82,21 @@ function detectShell(): ShellName {
   }
 
   try {
-    execSync("bash --version", { stdio: "pipe", encoding: "utf8" });
+    execSync("bash --version", EXEC_OPTS);
     return "bash";
   } catch {
     // not available
   }
 
   try {
-    execSync("pwsh --version", { stdio: "pipe", encoding: "utf8" });
+    execSync("pwsh --version", EXEC_OPTS);
     return "pwsh";
   } catch {
     // not available
   }
 
   try {
-    execSync("zsh --version", { stdio: "pipe", encoding: "utf8" });
+    execSync("zsh --version", EXEC_OPTS);
     return "zsh";
   } catch {
     // not available
@@ -69,7 +111,7 @@ function detectShell(): ShellName {
 function binaryInPath(binary: string): boolean {
   try {
     const cmd = process.platform === "win32" ? "where" : "which";
-    execSync(`${cmd} ${binary}`, { stdio: "pipe", encoding: "utf8" });
+    execSync(`${cmd} ${binary}`, EXEC_OPTS);
     return true;
   } catch {
     return false;
@@ -87,11 +129,33 @@ export function probe(): ProbeResult {
     shell !== null || bashInPath || pwshInPath || binaryInPath("zsh");
   const pathSeparator = process.platform === "win32" ? ";" : ":";
 
+  const risks: string[] = [];
+
+  const nodeVersion = probeVersion("node --version");
+  if (nodeVersion === null) {
+    risks.push("node_not_available");
+  }
+
+  const bunVersion = probeVersion("bun --version");
+  if (bunVersion === null) {
+    risks.push("bun_not_available");
+  }
+
+  const pythonVersion = probePythonVersion();
+  if (pythonVersion === null) {
+    risks.push("python_not_available");
+  }
+
   return {
     shell,
     shell_available: shellAvailable,
     bash_in_path: bashInPath,
     pwsh_in_path: pwshInPath,
     path_separator: pathSeparator,
+    node_version: nodeVersion,
+    bun_version: bunVersion,
+    python_version: pythonVersion,
+    encoding: detectEncoding(),
+    risks,
   };
 }
