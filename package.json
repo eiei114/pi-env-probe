@@ -1,0 +1,18 @@
+{
+  "name": "pi-env-probe",
+  "version": "0.1.0",
+  "description": "Cross-platform environment diagnostics for Pi — shell, PATH, runtime, encoding, non-ASCII path risks in compact JSON",
+  "type": "module",
+  "main": "./src/probe.js",
+  "bin": {
+    "env-probe": "./bin/env-probe.js"
+  },
+  "keywords": ["pi-package"],
+  "pi": {
+    "extensions": ["./extensions"],
+    "commands": {
+      "env-probe": "./bin/env-probe.js"
+    }
+  },
+  "license": "MIT"
+}
