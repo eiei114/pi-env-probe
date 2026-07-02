@@ -9,26 +9,26 @@
 
 import { execSync } from "node:child_process";
 
+export type ShellName = "bash" | "pwsh" | "cmd" | "zsh" | null;
+
+export interface ProbeResult {
+  shell: ShellName;
+  shell_available: boolean;
+  bash_in_path: boolean;
+  pwsh_in_path: boolean;
+  path_separator: ";" | ":";
+}
+
 /**
  * Detect the current shell name.
- *
- * Strategy (in order):
- *   1. $SHELL env var (POSIX)
- *   2. ComSpec / $shell (Windows cmd / PowerShell)
- *   3. Subprocess: `bash --version`, `pwsh --version`, `zsh --version`
- *
- * @returns {"bash"|"pwsh"|"cmd"|"zsh"|null}
  */
-function detectShell() {
-  // POSIX: $SHELL environment variable
+function detectShell(): ShellName {
   const shellEnv = process.env.SHELL;
   if (shellEnv) {
     if (shellEnv.includes("bash")) return "bash";
     if (shellEnv.includes("zsh")) return "zsh";
-    if (shellEnv.includes("fish")) return null; // not in spec
   }
 
-  // Windows: ComSpec or $shell
   if (process.platform === "win32") {
     const comSpec = process.env.ComSpec || process.env.COMSPEC;
     if (comSpec) {
@@ -38,7 +38,6 @@ function detectShell() {
     }
   }
 
-  // Subprocess detection: try each shell binary
   try {
     execSync("bash --version", { stdio: "pipe", encoding: "utf8" });
     return "bash";
@@ -65,13 +64,8 @@ function detectShell() {
 
 /**
  * Check if a binary is available in PATH.
- *
- * Uses `which` on POSIX, `where` on Windows. Returns false on any error.
- *
- * @param {string} binary - Binary name to look up (e.g. "bash", "pwsh")
- * @returns {boolean}
  */
-function binaryInPath(binary) {
+function binaryInPath(binary: string): boolean {
   try {
     const cmd = process.platform === "win32" ? "where" : "which";
     execSync(`${cmd} ${binary}`, { stdio: "pipe", encoding: "utf8" });
@@ -83,12 +77,11 @@ function binaryInPath(binary) {
 
 /**
  * Run all probes and return the result object.
- *
- * @returns {object}
  */
-export function probe() {
+export function probe(): ProbeResult {
   const shell = detectShell();
-  const shellAvailable = shell !== null || binaryInPath("bash") || binaryInPath("pwsh") || binaryInPath("zsh");
+  const shellAvailable =
+    shell !== null || binaryInPath("bash") || binaryInPath("pwsh") || binaryInPath("zsh");
   const bashInPath = binaryInPath("bash");
   const pwshInPath = binaryInPath("pwsh");
   const pathSeparator = process.platform === "win32" ? ";" : ":";

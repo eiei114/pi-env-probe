@@ -5,20 +5,17 @@
  * environment diagnostics from the chat.
  */
 
-import { probe } from "../src/probe.js";
-import { defineCommand } from "@earendil-works/pi-coding-agent";
+import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import { probe } from "../lib/probe.ts";
 
-export default function (pi) {
+export default function (pi: ExtensionAPI) {
   pi.registerCommand("env-probe", {
     description: "Run environment diagnostics (shell, PATH, encoding, non-ASCII path risks)",
     handler: async (_args, ctx) => {
       const result = probe();
       const formatted = JSON.stringify(result, null, 2);
       ctx.ui.notify("env-probe results collected", "info");
-      return {
-        content: [{ type: "text", text: "```json\n" + formatted + "\n```" }],
-        details: result,
-      };
+      console.log(formatted);
     },
   });
 }
