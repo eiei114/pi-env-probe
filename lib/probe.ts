@@ -27,6 +27,7 @@ function detectShell(): ShellName {
   if (shellEnv) {
     if (shellEnv.includes("bash")) return "bash";
     if (shellEnv.includes("zsh")) return "zsh";
+    return null;
   }
 
   if (process.platform === "win32") {
@@ -80,10 +81,10 @@ function binaryInPath(binary: string): boolean {
  */
 export function probe(): ProbeResult {
   const shell = detectShell();
-  const shellAvailable =
-    shell !== null || binaryInPath("bash") || binaryInPath("pwsh") || binaryInPath("zsh");
   const bashInPath = binaryInPath("bash");
   const pwshInPath = binaryInPath("pwsh");
+  const shellAvailable =
+    shell !== null || bashInPath || pwshInPath || binaryInPath("zsh");
   const pathSeparator = process.platform === "win32" ? ";" : ":";
 
   return {

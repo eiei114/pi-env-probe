@@ -58,27 +58,42 @@ jobs:
           echo "released=true" >> "$GITHUB_OUTPUT"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
 
+      - name: Setup Node.js
+        if: steps.check.outputs.released == 'true'
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          package-manager-cache: false
+
+      - name: Validate package before release
+        if: steps.check.outputs.released == 'true'
+        run: |
+          npm ci
+          npm run ci
+
       - name: Create tag and release
         if: steps.check.outputs.released == 'true'
         shell: bash
+        env:
+          TAG: ${{ steps.check.outputs.tag }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          TAG="${{ steps.check.outputs.tag }}"
           PREV_TAG=$(git tag --sort=-version:refname | head -1)
           NOTES="Released ${TAG}."
           if [ -n "$PREV_TAG" ]; then
-            NOTES="${NOTES}\n\n**Full Changelog**: https://github.com/${{ github.repository }}/compare/${PREV_TAG}...${TAG}"
+            NOTES="${NOTES}
+
+**Full Changelog**: https://github.com/${{ github.repository }}/compare/${PREV_TAG}...${TAG}"
           fi
           git tag "$TAG"
           git push origin "$TAG"
           gh release create "$TAG" --title "$TAG" --notes "$NOTES"
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Trigger publish workflow
         if: steps.check.outputs.released == 'true'
         shell: bash
-        run: |
-          TAG="${{ steps.check.outputs.tag }}"
-          gh workflow run publish.yml --ref "$TAG" -f ref="$TAG"
         env:
+          TAG: ${{ steps.check.outputs.tag }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh workflow run publish.yml --ref "$TAG" -f ref="$TAG"

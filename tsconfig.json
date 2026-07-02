@@ -9,7 +9,10 @@
     "types": [
       "node"
     ],
-    "allowImportingTsExtensions": true
+    "allowImportingTsExtensions": true,
+    "erasableSyntaxOnly": true,
+    "verbatimModuleSyntax": true,
+    "rewriteRelativeImportExtensions": true
   },
   "include": [
     "extensions/**/*.ts",
