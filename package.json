@@ -3,16 +3,60 @@
   "version": "0.1.0",
   "description": "Cross-platform environment diagnostics for Pi — shell, PATH, runtime, encoding, non-ASCII path risks in compact JSON",
   "type": "module",
-  "main": "./src/probe.js",
+  "license": "MIT",
+  "author": "eiei114",
+  "keywords": [
+    "pi-package",
+    "pi",
+    "environment",
+    "diagnostics",
+    "typescript"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eiei114/pi-env-probe.git"
+  },
+  "bugs": {
+    "url": "https://github.com/eiei114/pi-env-probe/issues"
+  },
+  "homepage": "https://github.com/eiei114/pi-env-probe#readme",
   "bin": {
     "env-probe": "./bin/env-probe.js"
   },
-  "keywords": ["pi-package"],
+  "files": [
+    "bin/",
+    "extensions/",
+    "lib/",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "node --test tests/*.test.mjs",
+    "ci": "npm run typecheck && npm test && npm run pack:check",
+    "pack:check": "npm pack --dry-run"
+  },
   "pi": {
-    "extensions": ["./extensions"],
+    "extensions": [
+      "./extensions"
+    ],
     "commands": {
       "env-probe": "./bin/env-probe.js"
     }
   },
-  "license": "MIT"
+  "publishConfig": {
+    "access": "public"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "^0.80.3"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-coding-agent": "^0.80.3",
+    "@types/node": "^26.0.0",
+    "typescript": "^6.0.3"
+  },
+  "engines": {
+    "node": ">=22.18.0"
+  }
 }
