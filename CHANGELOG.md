@@ -1,13 +1,10 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+## 0.1.1 - 2026-07-04
 
-This project follows semantic versioning.
+- add Buy Me a Coffee support button to the README
+- add GitHub funding metadata via `.github/FUNDING.yml`
 
-## [0.1.0] - 2026-07-02
+## 0.1.0 - 2026-07-04
 
-### Added
-
-- Walking skeleton: `probe()` returns shell, PATH, and path separator diagnostics as compact JSON.
-- CLI entry point (`env-probe`) and Pi `/env-probe` slash command.
-- OSS / Pi extension template alignment: CI, publish-prep workflows, and governance docs.
+- initial release of `pi-env-probe`
