@@ -26,7 +26,7 @@ export interface ProbeResult {
   risks: string[];
 }
 
-const EXEC_OPTS = { stdio: "pipe", encoding: "utf8" } as const;
+const EXEC_OPTS = { stdio: "pipe", encoding: "utf8", timeout: 5000 } as const;
 
 /**
  * Run a version probe command and return trimmed stdout, or null on failure.
