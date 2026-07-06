@@ -1,5 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import fs from "node:fs";
+import path from "node:path";
+import os from "node:os";
 
 const { probe } = await import("../lib/probe.ts");
 
@@ -102,34 +105,42 @@ test("risks includes non_ascii_paths_in_cwd when non-ASCII paths found", () => {
 });
 
 test("risk ordering: shell risks before runtime risks before path risks", () => {
-  const result = probe();
-  const riskOrder = result.risks;
-  const shellRisks = ["bash_not_in_path", "pwsh_not_in_path"];
-  const runtimeRisks = ["node_not_available", "bun_not_available", "python_not_available"];
-  const pathRisks = ["non_ascii_paths_in_cwd"];
+  // Create a temp directory with a non-ASCII file to deterministically
+  // trigger the path-risk category so all three ordering assertions run.
+  const originalCwd = process.cwd();
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "probe-ordering-test-"));
+  fs.writeFileSync(path.join(tmpDir, "テスト.txt"), "");
+  process.chdir(tmpDir);
+  try {
+    const result = probe();
+    const riskOrder = result.risks;
+    const shellRisks = ["bash_not_in_path", "pwsh_not_in_path"];
+    const runtimeRisks = ["node_not_available", "bun_not_available", "python_not_available"];
+    const pathRisks = ["non_ascii_paths_in_cwd"];
 
-  // Collect positions of each risk category's first and last occurrence
-  let lastShellIdx = -1;
-  let firstRuntimeIdx = riskOrder.length;
-  let lastRuntimeIdx = -1;
-  let firstPathIdx = riskOrder.length;
+    // Collect positions of each risk category's first and last occurrence
+    let lastShellIdx = -1;
+    let firstRuntimeIdx = riskOrder.length;
+    let lastRuntimeIdx = -1;
+    let firstPathIdx = riskOrder.length;
 
-  for (let i = 0; i < riskOrder.length; i++) {
-    const risk = riskOrder[i];
-    if (shellRisks.includes(risk)) lastShellIdx = i;
-    if (runtimeRisks.includes(risk)) {
-      firstRuntimeIdx = Math.min(firstRuntimeIdx, i);
-      lastRuntimeIdx = Math.max(lastRuntimeIdx, i);
+    for (let i = 0; i < riskOrder.length; i++) {
+      const risk = riskOrder[i];
+      if (shellRisks.includes(risk)) lastShellIdx = i;
+      if (runtimeRisks.includes(risk)) {
+        firstRuntimeIdx = Math.min(firstRuntimeIdx, i);
+        lastRuntimeIdx = Math.max(lastRuntimeIdx, i);
+      }
+      if (pathRisks.includes(risk)) firstPathIdx = Math.min(firstPathIdx, i);
     }
-    if (pathRisks.includes(risk)) firstPathIdx = Math.min(firstPathIdx, i);
-  }
 
-  // If all three categories are present, verify ordering
-  if (lastShellIdx >= 0 && firstRuntimeIdx < riskOrder.length && firstPathIdx < riskOrder.length) {
     assert.ok(lastShellIdx < firstRuntimeIdx,
       `Shell risks (last at ${lastShellIdx}) should come before runtime risks (first at ${firstRuntimeIdx})`);
     assert.ok(lastRuntimeIdx < firstPathIdx,
       `Runtime risks (last at ${lastRuntimeIdx}) should come before path risks (first at ${firstPathIdx})`);
+  } finally {
+    process.chdir(originalCwd);
+    fs.rmSync(tmpDir, { recursive: true, force: true });
   }
 });
 
