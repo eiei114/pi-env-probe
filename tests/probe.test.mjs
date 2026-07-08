@@ -105,8 +105,6 @@ test("risks includes non_ascii_paths_in_cwd when non-ASCII paths found", () => {
 });
 
 test("risk ordering: shell risks before runtime risks before path risks", () => {
-  // Create a temp directory with a non-ASCII file to deterministically
-  // trigger the path-risk category so all three ordering assertions run.
   const originalCwd = process.cwd();
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "probe-ordering-test-"));
   fs.writeFileSync(path.join(tmpDir, "テスト.txt"), "");
@@ -118,7 +116,6 @@ test("risk ordering: shell risks before runtime risks before path risks", () => 
     const runtimeRisks = ["node_not_available", "bun_not_available", "python_not_available"];
     const pathRisks = ["non_ascii_paths_in_cwd"];
 
-    // Collect positions of each risk category's first and last occurrence
     let lastShellIdx = -1;
     let firstRuntimeIdx = riskOrder.length;
     let lastRuntimeIdx = -1;

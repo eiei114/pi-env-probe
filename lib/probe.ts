@@ -17,12 +17,12 @@ export interface ProbeResult {
   shell_available: boolean;
   bash_in_path: boolean;
   pwsh_in_path: boolean;
-  has_non_ascii_paths_in_cwd: boolean;
   path_separator: ";" | ":";
   node_version: string | null;
   bun_version: string | null;
   python_version: string | null;
   encoding: string;
+  has_non_ascii_paths_in_cwd: boolean;
   risks: string[];
 }
 
@@ -107,6 +107,21 @@ function detectShell(): ShellName {
   return null;
 }
 
+const NON_ASCII_RE = /[^\x00-\x7F]/;
+
+/**
+ * Check if any direct child of CWD has a non-ASCII name.
+ * Never throws — returns false on error.
+ */
+function hasNonAsciiPathsInCwd(): boolean {
+  try {
+    const entries = readdirSync(process.cwd());
+    return entries.some((entry) => NON_ASCII_RE.test(entry));
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Check if a binary is available in PATH.
  */
@@ -115,21 +130,6 @@ function binaryInPath(binary: string): boolean {
     const cmd = process.platform === "win32" ? "where" : "which";
     execSync(`${cmd} ${binary}`, EXEC_OPTS);
     return true;
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Check if any file or directory in the current working directory
- * has a non-ASCII name (Japanese, Chinese, emoji, accented Latin, etc.).
- * Scans direct children only (one level deep).
- * Never throws — returns false on error.
- */
-function hasNonAsciiPathsInCwd(): boolean {
-  try {
-    const entries = readdirSync(process.cwd());
-    return entries.some((entry) => /[^\x00-\x7F]/.test(entry));
   } catch {
     return false;
   }
@@ -151,10 +151,8 @@ export function probe(): ProbeResult {
   const pythonVersion = probePythonVersion();
   const cwdHasNonAscii = hasNonAsciiPathsInCwd();
 
-  // Build risks array with ordering: shell → runtime → path
   const risks: string[] = [];
 
-  // Shell risks first
   if (!bashInPath) {
     risks.push("bash_not_in_path");
   }
@@ -162,7 +160,6 @@ export function probe(): ProbeResult {
     risks.push("pwsh_not_in_path");
   }
 
-  // Runtime risks second
   if (nodeVersion === null) {
     risks.push("node_not_available");
   }
@@ -173,7 +170,6 @@ export function probe(): ProbeResult {
     risks.push("python_not_available");
   }
 
-  // Path risks last
   if (cwdHasNonAscii) {
     risks.push("non_ascii_paths_in_cwd");
   }
@@ -183,12 +179,12 @@ export function probe(): ProbeResult {
     shell_available: shellAvailable,
     bash_in_path: bashInPath,
     pwsh_in_path: pwshInPath,
-    has_non_ascii_paths_in_cwd: cwdHasNonAscii,
     path_separator: pathSeparator,
     node_version: nodeVersion,
     bun_version: bunVersion,
     python_version: pythonVersion,
     encoding: detectEncoding(),
+    has_non_ascii_paths_in_cwd: cwdHasNonAscii,
     risks,
   };
 }
