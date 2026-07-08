@@ -8,6 +8,7 @@
  */
 
 import { execSync } from "node:child_process";
+import { readdirSync } from "node:fs";
 
 export type ShellName = "bash" | "pwsh" | "cmd" | "zsh" | null;
 
@@ -21,6 +22,7 @@ export interface ProbeResult {
   bun_version: string | null;
   python_version: string | null;
   encoding: string;
+  has_non_ascii_paths_in_cwd: boolean;
   risks: string[];
 }
 
@@ -105,6 +107,20 @@ function detectShell(): ShellName {
   return null;
 }
 
+const NON_ASCII_RE = /[^\x00-\x7F]/;
+
+/**
+ * Check if any direct child of CWD has a non-ASCII name.
+ */
+function hasNonAsciiPathsInCwd(): boolean {
+  try {
+    const entries = readdirSync(process.cwd());
+    return entries.some((entry) => NON_ASCII_RE.test(entry));
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Check if a binary is available in PATH.
  */
@@ -129,21 +145,32 @@ export function probe(): ProbeResult {
     shell !== null || bashInPath || pwshInPath || binaryInPath("zsh");
   const pathSeparator = process.platform === "win32" ? ";" : ":";
 
+  const nodeVersion = probeVersion("node --version");
+  const bunVersion = probeVersion("bun --version");
+  const pythonVersion = probePythonVersion();
+  const hasNonAsciiPaths = hasNonAsciiPathsInCwd();
+
   const risks: string[] = [];
 
-  const nodeVersion = probeVersion("node --version");
+  if (!bashInPath) {
+    risks.push("bash_not_in_path");
+  }
+  if (!pwshInPath) {
+    risks.push("pwsh_not_in_path");
+  }
+
   if (nodeVersion === null) {
     risks.push("node_not_available");
   }
-
-  const bunVersion = probeVersion("bun --version");
   if (bunVersion === null) {
     risks.push("bun_not_available");
   }
-
-  const pythonVersion = probePythonVersion();
   if (pythonVersion === null) {
     risks.push("python_not_available");
+  }
+
+  if (hasNonAsciiPaths) {
+    risks.push("non_ascii_paths_in_cwd");
   }
 
   return {
@@ -156,6 +183,7 @@ export function probe(): ProbeResult {
     bun_version: bunVersion,
     python_version: pythonVersion,
     encoding: detectEncoding(),
+    has_non_ascii_paths_in_cwd: hasNonAsciiPaths,
     risks,
   };
 }

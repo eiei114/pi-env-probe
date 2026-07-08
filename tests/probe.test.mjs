@@ -14,6 +14,7 @@ test("probe returns required fields", () => {
   assert.ok("bun_version" in result);
   assert.ok("python_version" in result);
   assert.ok("encoding" in result);
+  assert.ok("has_non_ascii_paths_in_cwd" in result);
   assert.ok("risks" in result);
 });
 
@@ -72,6 +73,58 @@ test("risks includes availability flags for missing runtimes", () => {
   }
   if (result.python_version === null) {
     assert.ok(result.risks.includes("python_not_available"));
+  }
+});
+
+test("has_non_ascii_paths_in_cwd is boolean", () => {
+  assert.equal(typeof probe().has_non_ascii_paths_in_cwd, "boolean");
+});
+
+test("risks includes shell path flags when binaries missing", () => {
+  const result = probe();
+  if (!result.bash_in_path) {
+    assert.ok(result.risks.includes("bash_not_in_path"));
+  }
+  if (!result.pwsh_in_path) {
+    assert.ok(result.risks.includes("pwsh_not_in_path"));
+  }
+});
+
+test("risks includes non_ascii_paths_in_cwd when detected", () => {
+  const result = probe();
+  if (result.has_non_ascii_paths_in_cwd) {
+    assert.ok(result.risks.includes("non_ascii_paths_in_cwd"));
+  }
+});
+
+test("risks ordering: shell, runtime, path", () => {
+  const result = probe();
+  const shellRisks = ["bash_not_in_path", "pwsh_not_in_path"];
+  const runtimeRisks = [
+    "node_not_available",
+    "bun_not_available",
+    "python_not_available",
+  ];
+  const pathRisks = ["non_ascii_paths_in_cwd"];
+
+  const shellIndices = result.risks
+    .map((r, i) => (shellRisks.includes(r) ? i : -1))
+    .filter((i) => i >= 0);
+  const runtimeIndices = result.risks
+    .map((r, i) => (runtimeRisks.includes(r) ? i : -1))
+    .filter((i) => i >= 0);
+  const pathIndices = result.risks
+    .map((r, i) => (pathRisks.includes(r) ? i : -1))
+    .filter((i) => i >= 0);
+
+  if (shellIndices.length > 0 && runtimeIndices.length > 0) {
+    assert.ok(Math.max(...shellIndices) < Math.min(...runtimeIndices));
+  }
+  if (runtimeIndices.length > 0 && pathIndices.length > 0) {
+    assert.ok(Math.max(...runtimeIndices) < Math.min(...pathIndices));
+  }
+  if (shellIndices.length > 0 && pathIndices.length > 0) {
+    assert.ok(Math.max(...shellIndices) < Math.min(...pathIndices));
   }
 });
 
