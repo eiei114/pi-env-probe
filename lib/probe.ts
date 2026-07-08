@@ -26,7 +26,7 @@ export interface ProbeResult {
   risks: string[];
 }
 
-const EXEC_OPTS = { stdio: "pipe", encoding: "utf8" } as const;
+const EXEC_OPTS = { stdio: "pipe", encoding: "utf8", timeout: 5000 } as const;
 
 /**
  * Run a version probe command and return trimmed stdout, or null on failure.
@@ -111,6 +111,7 @@ const NON_ASCII_RE = /[^\x00-\x7F]/;
 
 /**
  * Check if any direct child of CWD has a non-ASCII name.
+ * Never throws — returns false on error.
  */
 function hasNonAsciiPathsInCwd(): boolean {
   try {
@@ -148,7 +149,7 @@ export function probe(): ProbeResult {
   const nodeVersion = probeVersion("node --version");
   const bunVersion = probeVersion("bun --version");
   const pythonVersion = probePythonVersion();
-  const hasNonAsciiPaths = hasNonAsciiPathsInCwd();
+  const cwdHasNonAscii = hasNonAsciiPathsInCwd();
 
   const risks: string[] = [];
 
@@ -169,7 +170,7 @@ export function probe(): ProbeResult {
     risks.push("python_not_available");
   }
 
-  if (hasNonAsciiPaths) {
+  if (cwdHasNonAscii) {
     risks.push("non_ascii_paths_in_cwd");
   }
 
@@ -183,7 +184,7 @@ export function probe(): ProbeResult {
     bun_version: bunVersion,
     python_version: pythonVersion,
     encoding: detectEncoding(),
-    has_non_ascii_paths_in_cwd: hasNonAsciiPaths,
+    has_non_ascii_paths_in_cwd: cwdHasNonAscii,
     risks,
   };
 }

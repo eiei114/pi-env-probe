@@ -19,8 +19,41 @@
 
 - Detects the current shell (`bash`, `pwsh`, `cmd`, `zsh`, or `null`)
 - Reports whether common shells are available in `PATH`
+- Detects non-ASCII file/folder names in the current working directory
 - Returns the platform path separator (`;` on Windows, `:` on POSIX)
+- Aggregates identified risks into a sorted array
 - Never throws from `probe()` — subprocess failures degrade to `false` / `null`
+
+## Probe result fields
+
+| Field | Type | Description |
+|---|---|---|
+| `shell` | `string \| null` | Identified shell name (`"bash"`, `"pwsh"`, `"cmd"`, `"zsh"`, or `null`) |
+| `shell_available` | `boolean` | Whether any shell is available in PATH or detected from environment |
+| `bash_in_path` | `boolean` | Whether `bash` is found in PATH |
+| `pwsh_in_path` | `boolean` | Whether `pwsh` is found in PATH |
+| `has_non_ascii_paths_in_cwd` | `boolean` | Whether any direct child of CWD has a non-ASCII name |
+| `path_separator` | `string` | Platform path separator (`";"` on Windows, `":"` on POSIX) |
+| `node_version` | `string \| null` | Node.js version string (e.g. `"v22.0.0"`), or `null` if unavailable |
+| `bun_version` | `string \| null` | Bun version string, or `null` if unavailable |
+| `python_version` | `string \| null` | Python version string, or `null` if unavailable |
+| `encoding` | `string` | Detected locale encoding from `LC_CTYPE` / `LANG`, defaults to `"utf8"` |
+| `risks` | `string[]` | Ordered list of identified issues, empty `[]` when none |
+
+### Risk strings
+
+The `risks` array may contain any of the following strings, in order: shell issues first, runtime issues second, path issues last.
+
+| Risk string | Condition |
+|---|---|
+| `"bash_not_in_path"` | `bash_in_path` is `false` |
+| `"pwsh_not_in_path"` | `pwsh_in_path` is `false` |
+| `"node_not_available"` | `node_version` is `null` |
+| `"bun_not_available"` | `bun_version` is `null` |
+| `"python_not_available"` | `python_version` is `null` |
+| `"non_ascii_paths_in_cwd"` | `has_non_ascii_paths_in_cwd` is `true` |
+
+> The risk array is always present. When no issues are detected it is an empty array `[]`.
 
 ## Install
 

@@ -1,5 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import fs from "node:fs";
+import path from "node:path";
+import os from "node:os";
 
 const { probe } = await import("../lib/probe.ts");
 
@@ -9,12 +12,12 @@ test("probe returns required fields", () => {
   assert.ok("shell_available" in result);
   assert.ok("bash_in_path" in result);
   assert.ok("pwsh_in_path" in result);
+  assert.ok("has_non_ascii_paths_in_cwd" in result);
   assert.ok("path_separator" in result);
   assert.ok("node_version" in result);
   assert.ok("bun_version" in result);
   assert.ok("python_version" in result);
   assert.ok("encoding" in result);
-  assert.ok("has_non_ascii_paths_in_cwd" in result);
   assert.ok("risks" in result);
 });
 
@@ -36,6 +39,11 @@ test("bash_in_path and pwsh_in_path are booleans", () => {
   const result = probe();
   assert.equal(typeof result.bash_in_path, "boolean");
   assert.equal(typeof result.pwsh_in_path, "boolean");
+});
+
+test("has_non_ascii_paths_in_cwd is a boolean", () => {
+  const result = probe();
+  assert.equal(typeof result.has_non_ascii_paths_in_cwd, "boolean");
 });
 
 test("runtime version fields are string or null", () => {
@@ -63,6 +71,18 @@ test("risks is an array of strings", () => {
   }
 });
 
+test("risks includes shell_not_in_path flags when shells are missing", () => {
+  const result = probe();
+  if (!result.bash_in_path) {
+    assert.ok(result.risks.includes("bash_not_in_path"),
+      "risks should include bash_not_in_path when bash_in_path is false");
+  }
+  if (!result.pwsh_in_path) {
+    assert.ok(result.risks.includes("pwsh_not_in_path"),
+      "risks should include pwsh_not_in_path when pwsh_in_path is false");
+  }
+});
+
 test("risks includes availability flags for missing runtimes", () => {
   const result = probe();
   if (result.node_version === null) {
@@ -76,55 +96,48 @@ test("risks includes availability flags for missing runtimes", () => {
   }
 });
 
-test("has_non_ascii_paths_in_cwd is boolean", () => {
-  assert.equal(typeof probe().has_non_ascii_paths_in_cwd, "boolean");
-});
-
-test("risks includes shell path flags when binaries missing", () => {
-  const result = probe();
-  if (!result.bash_in_path) {
-    assert.ok(result.risks.includes("bash_not_in_path"));
-  }
-  if (!result.pwsh_in_path) {
-    assert.ok(result.risks.includes("pwsh_not_in_path"));
-  }
-});
-
-test("risks includes non_ascii_paths_in_cwd when detected", () => {
+test("risks includes non_ascii_paths_in_cwd when non-ASCII paths found", () => {
   const result = probe();
   if (result.has_non_ascii_paths_in_cwd) {
-    assert.ok(result.risks.includes("non_ascii_paths_in_cwd"));
+    assert.ok(result.risks.includes("non_ascii_paths_in_cwd"),
+      "risks should include non_ascii_paths_in_cwd when has_non_ascii_paths_in_cwd is true");
   }
 });
 
-test("risks ordering: shell, runtime, path", () => {
-  const result = probe();
-  const shellRisks = ["bash_not_in_path", "pwsh_not_in_path"];
-  const runtimeRisks = [
-    "node_not_available",
-    "bun_not_available",
-    "python_not_available",
-  ];
-  const pathRisks = ["non_ascii_paths_in_cwd"];
+test("risk ordering: shell risks before runtime risks before path risks", () => {
+  const originalCwd = process.cwd();
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "probe-ordering-test-"));
+  fs.writeFileSync(path.join(tmpDir, "テスト.txt"), "");
+  process.chdir(tmpDir);
+  try {
+    const result = probe();
+    const riskOrder = result.risks;
+    const shellRisks = ["bash_not_in_path", "pwsh_not_in_path"];
+    const runtimeRisks = ["node_not_available", "bun_not_available", "python_not_available"];
+    const pathRisks = ["non_ascii_paths_in_cwd"];
 
-  const shellIndices = result.risks
-    .map((r, i) => (shellRisks.includes(r) ? i : -1))
-    .filter((i) => i >= 0);
-  const runtimeIndices = result.risks
-    .map((r, i) => (runtimeRisks.includes(r) ? i : -1))
-    .filter((i) => i >= 0);
-  const pathIndices = result.risks
-    .map((r, i) => (pathRisks.includes(r) ? i : -1))
-    .filter((i) => i >= 0);
+    let lastShellIdx = -1;
+    let firstRuntimeIdx = riskOrder.length;
+    let lastRuntimeIdx = -1;
+    let firstPathIdx = riskOrder.length;
 
-  if (shellIndices.length > 0 && runtimeIndices.length > 0) {
-    assert.ok(Math.max(...shellIndices) < Math.min(...runtimeIndices));
-  }
-  if (runtimeIndices.length > 0 && pathIndices.length > 0) {
-    assert.ok(Math.max(...runtimeIndices) < Math.min(...pathIndices));
-  }
-  if (shellIndices.length > 0 && pathIndices.length > 0) {
-    assert.ok(Math.max(...shellIndices) < Math.min(...pathIndices));
+    for (let i = 0; i < riskOrder.length; i++) {
+      const risk = riskOrder[i];
+      if (shellRisks.includes(risk)) lastShellIdx = i;
+      if (runtimeRisks.includes(risk)) {
+        firstRuntimeIdx = Math.min(firstRuntimeIdx, i);
+        lastRuntimeIdx = Math.max(lastRuntimeIdx, i);
+      }
+      if (pathRisks.includes(risk)) firstPathIdx = Math.min(firstPathIdx, i);
+    }
+
+    assert.ok(lastShellIdx < firstRuntimeIdx,
+      `Shell risks (last at ${lastShellIdx}) should come before runtime risks (first at ${firstRuntimeIdx})`);
+    assert.ok(lastRuntimeIdx < firstPathIdx,
+      `Runtime risks (last at ${lastRuntimeIdx}) should come before path risks (first at ${firstPathIdx})`);
+  } finally {
+    process.chdir(originalCwd);
+    fs.rmSync(tmpDir, { recursive: true, force: true });
   }
 });
 
