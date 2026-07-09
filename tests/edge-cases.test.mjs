@@ -9,10 +9,20 @@ import test from "node:test";
 const repoRoot = fileURLToPath(new URL("..", import.meta.url));
 const { probe } = await import("../lib/probe.ts");
 const cliPath = fileURLToPath(new URL("../bin/env-probe.js", import.meta.url));
+
 const timeoutHarnessPath = fileURLToPath(
   new URL("./helpers/probe-timeout-harness.mjs", import.meta.url),
 );
+const isolationHarnessPath = fileURLToPath(
+  new URL("./helpers/probe-isolation-harness.mjs", import.meta.url),
+);
+const neverThrowsHarnessPath = fileURLToPath(
+  new URL("./helpers/probe-never-throws-harness.mjs", import.meta.url),
+);
 
+/**
+ * Run probe() in a child process with PATH cleared and minimal env vars.
+ */
 function runProbeInSanitizedEnv() {
   const env = {
     SystemRoot: process.env.SystemRoot,
@@ -30,6 +40,9 @@ function runProbeInSanitizedEnv() {
   return JSON.parse(result.stdout);
 }
 
+/**
+ * Create a temporary directory, chdir into it for `fn`, then restore CWD.
+ */
 function withTempCwd(fn) {
   const dir = mkdtempSync(join(tmpdir(), "pi-env-probe-"));
   const original = process.cwd();
@@ -42,6 +55,9 @@ function withTempCwd(fn) {
   }
 }
 
+/**
+ * Temporarily override process.env keys, run `fn`, then restore prior values.
+ */
 function withEnv(overrides, fn) {
   const saved = {};
   for (const key of Object.keys(overrides)) {
@@ -94,6 +110,38 @@ test("subprocess timeout returns null for version fields without crashing", () =
   assert.equal(versions.node_version, null);
   assert.equal(versions.bun_version, null);
   assert.equal(versions.python_version, null);
+});
+
+test("one failed runtime probe does not block other runtime probes", () => {
+  const result = spawnSync(
+    process.execPath,
+    [
+      "--experimental-test-module-mocks",
+      "--experimental-strip-types",
+      isolationHarnessPath,
+    ],
+    { cwd: repoRoot, encoding: "utf8" },
+  );
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+  const parsed = JSON.parse(result.stdout);
+  assert.ok(parsed.node_version !== null, "node probe should still succeed");
+  assert.equal(parsed.python_version, null, "python probe should fail gracefully");
+  assert.ok(parsed.risks.includes("python_not_available"));
+});
+
+test("probe never throws when subprocess and filesystem probes all fail", () => {
+  const result = spawnSync(
+    process.execPath,
+    [
+      "--experimental-test-module-mocks",
+      "--experimental-strip-types",
+      neverThrowsHarnessPath,
+    ],
+    { cwd: repoRoot, encoding: "utf8" },
+  );
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+  const parsed = JSON.parse(result.stdout);
+  assert.equal(parsed.threw, false);
 });
 
 test("encoding prefers LC_CTYPE over LANG", () => {
