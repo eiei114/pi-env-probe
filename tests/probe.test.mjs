@@ -141,6 +141,12 @@ test("risk ordering: shell risks before runtime risks before path risks", () => 
   }
 });
 
+test("shell is a known enum value when present", () => {
+  const result = probe();
+  const validShells = ["bash", "pwsh", "cmd", "zsh", null];
+  assert.ok(validShells.includes(result.shell));
+});
+
 test("node_version is populated when node is available", () => {
   const result = probe();
   assert.ok(result.node_version !== null);

@@ -29,6 +29,25 @@ export interface ProbeResult {
 const EXEC_OPTS = { stdio: "pipe", encoding: "utf8", timeout: 5000 } as const;
 
 /**
+ * Safe fallback when an unexpected error escapes a sub-probe.
+ */
+function createEmptyResult(): ProbeResult {
+  return {
+    shell: null,
+    shell_available: false,
+    bash_in_path: false,
+    pwsh_in_path: false,
+    path_separator: process.platform === "win32" ? ";" : ":",
+    node_version: null,
+    bun_version: null,
+    python_version: null,
+    encoding: detectEncoding(),
+    has_non_ascii_paths_in_cwd: false,
+    risks: [],
+  };
+}
+
+/**
  * Run a version probe command and return trimmed stdout, or null on failure.
  */
 function probeVersion(command: string): string | null {
@@ -139,52 +158,56 @@ function binaryInPath(binary: string): boolean {
  * Run all probes and return the result object.
  */
 export function probe(): ProbeResult {
-  const shell = detectShell();
-  const bashInPath = binaryInPath("bash");
-  const pwshInPath = binaryInPath("pwsh");
-  const shellAvailable =
-    shell !== null || bashInPath || pwshInPath || binaryInPath("zsh");
-  const pathSeparator = process.platform === "win32" ? ";" : ":";
+  try {
+    const shell = detectShell();
+    const bashInPath = binaryInPath("bash");
+    const pwshInPath = binaryInPath("pwsh");
+    const shellAvailable =
+      shell !== null || bashInPath || pwshInPath || binaryInPath("zsh");
+    const pathSeparator = process.platform === "win32" ? ";" : ":";
 
-  const nodeVersion = probeVersion("node --version");
-  const bunVersion = probeVersion("bun --version");
-  const pythonVersion = probePythonVersion();
-  const cwdHasNonAscii = hasNonAsciiPathsInCwd();
+    const nodeVersion = probeVersion("node --version");
+    const bunVersion = probeVersion("bun --version");
+    const pythonVersion = probePythonVersion();
+    const cwdHasNonAscii = hasNonAsciiPathsInCwd();
 
-  const risks: string[] = [];
+    const risks: string[] = [];
 
-  if (!bashInPath) {
-    risks.push("bash_not_in_path");
-  }
-  if (!pwshInPath) {
-    risks.push("pwsh_not_in_path");
-  }
+    if (!bashInPath) {
+      risks.push("bash_not_in_path");
+    }
+    if (!pwshInPath) {
+      risks.push("pwsh_not_in_path");
+    }
 
-  if (nodeVersion === null) {
-    risks.push("node_not_available");
-  }
-  if (bunVersion === null) {
-    risks.push("bun_not_available");
-  }
-  if (pythonVersion === null) {
-    risks.push("python_not_available");
-  }
+    if (nodeVersion === null) {
+      risks.push("node_not_available");
+    }
+    if (bunVersion === null) {
+      risks.push("bun_not_available");
+    }
+    if (pythonVersion === null) {
+      risks.push("python_not_available");
+    }
 
-  if (cwdHasNonAscii) {
-    risks.push("non_ascii_paths_in_cwd");
-  }
+    if (cwdHasNonAscii) {
+      risks.push("non_ascii_paths_in_cwd");
+    }
 
-  return {
-    shell,
-    shell_available: shellAvailable,
-    bash_in_path: bashInPath,
-    pwsh_in_path: pwshInPath,
-    path_separator: pathSeparator,
-    node_version: nodeVersion,
-    bun_version: bunVersion,
-    python_version: pythonVersion,
-    encoding: detectEncoding(),
-    has_non_ascii_paths_in_cwd: cwdHasNonAscii,
-    risks,
-  };
+    return {
+      shell,
+      shell_available: shellAvailable,
+      bash_in_path: bashInPath,
+      pwsh_in_path: pwshInPath,
+      path_separator: pathSeparator,
+      node_version: nodeVersion,
+      bun_version: bunVersion,
+      python_version: pythonVersion,
+      encoding: detectEncoding(),
+      has_non_ascii_paths_in_cwd: cwdHasNonAscii,
+      risks,
+    };
+  } catch {
+    return createEmptyResult();
+  }
 }
