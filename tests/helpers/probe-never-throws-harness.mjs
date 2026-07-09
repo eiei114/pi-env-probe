@@ -6,6 +6,7 @@ import { mock } from "node:test";
 
 mock.module("node:child_process", {
   exports: {
+    /** Always throw to simulate total subprocess probe failure. */
     execSync() {
       throw new Error("forced subprocess failure");
     },
@@ -14,6 +15,7 @@ mock.module("node:child_process", {
 
 mock.module("node:fs", {
   exports: {
+    /** Always throw to simulate filesystem probe failure. */
     readdirSync() {
       throw new Error("forced readdir failure");
     },

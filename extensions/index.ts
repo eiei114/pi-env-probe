@@ -8,6 +8,9 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { probe } from "../lib/probe.ts";
 
+/**
+ * Register the `/env-probe` slash command with the Pi extension API.
+ */
 export default function (pi: ExtensionAPI) {
   pi.registerCommand("env-probe", {
     description: "Run environment diagnostics (shell, PATH, encoding, non-ASCII path risks)",

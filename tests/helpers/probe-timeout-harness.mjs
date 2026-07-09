@@ -7,6 +7,7 @@ import { execSync as realExecSync } from "node:child_process";
 
 mock.module("node:child_process", {
   exports: {
+    /** Throw ETIMEDOUT for version probes; delegate other commands to real execSync. */
     execSync(command, options) {
       const cmd = String(command);
       if (cmd.includes("--version")) {

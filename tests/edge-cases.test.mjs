@@ -20,6 +20,9 @@ const neverThrowsHarnessPath = fileURLToPath(
   new URL("./helpers/probe-never-throws-harness.mjs", import.meta.url),
 );
 
+/**
+ * Run probe() in a child process with PATH cleared and minimal env vars.
+ */
 function runProbeInSanitizedEnv() {
   const env = {
     SystemRoot: process.env.SystemRoot,
@@ -37,6 +40,9 @@ function runProbeInSanitizedEnv() {
   return JSON.parse(result.stdout);
 }
 
+/**
+ * Create a temporary directory, chdir into it for `fn`, then restore CWD.
+ */
 function withTempCwd(fn) {
   const dir = mkdtempSync(join(tmpdir(), "pi-env-probe-"));
   const original = process.cwd();
@@ -49,6 +55,9 @@ function withTempCwd(fn) {
   }
 }
 
+/**
+ * Temporarily override process.env keys, run `fn`, then restore prior values.
+ */
 function withEnv(overrides, fn) {
   const saved = {};
   for (const key of Object.keys(overrides)) {
