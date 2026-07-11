@@ -58,11 +58,25 @@ jobs:
           echo "released=true" >> "$GITHUB_OUTPUT"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
 
+      - name: Setup Node.js
+        if: steps.check.outputs.released == 'true'
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          package-manager-cache: false
+
+      - name: Install dependencies
+        if: steps.check.outputs.released == 'true'
+        run: npm ci
+
+      - name: Validate release candidate
+        if: steps.check.outputs.released == 'true'
+        run: npm run ci
+
       - name: Create tag and release
         if: steps.check.outputs.released == 'true'
         shell: bash
         run: |
-          TAG="${{ steps.check.outputs.tag }}"
           PREV_TAG=$(git tag --sort=-version:refname | head -1)
           NOTES="Released ${TAG}."
           if [ -n "$PREV_TAG" ]; then
@@ -73,12 +87,13 @@ jobs:
           gh release create "$TAG" --title "$TAG" --notes "$NOTES"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.check.outputs.tag }}
 
       - name: Trigger publish workflow
         if: steps.check.outputs.released == 'true'
         shell: bash
         run: |
-          TAG="${{ steps.check.outputs.tag }}"
           gh workflow run publish.yml --ref "$TAG" -f ref="$TAG"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.check.outputs.tag }}

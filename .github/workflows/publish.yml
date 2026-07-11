@@ -80,7 +80,7 @@ jobs:
 
       - name: Ensure npm supports trusted publishing
         if: steps.published.outputs.skip != 'true'
-        run: npm install -g npm@latest
+        run: npm install -g npm@11.6.1
 
       - name: Publish to npm
         if: steps.published.outputs.skip != 'true'
