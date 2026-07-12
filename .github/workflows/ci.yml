@@ -22,9 +22,6 @@ jobs:
         with:
           node-version: 24
           package-manager-cache: false
-      # Bun is installed for pi-extension-template alignment; CI still runs via npm.
       - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
       - run: npm ci
       - run: npm run ci
