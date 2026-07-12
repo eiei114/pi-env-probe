@@ -1,7 +1,7 @@
 {
   "name": "pi-env-probe",
   "version": "0.1.2",
-  "description": "Cross-platform environment diagnostics for Pi — shell, PATH, runtime, encoding, non-ASCII path risks in compact JSON",
+  "description": "Cross-platform environment diagnostics for Pi \u2014 shell, PATH, runtime, encoding, non-ASCII path risks in compact JSON",
   "type": "module",
   "license": "MIT",
   "author": "eiei114",
@@ -52,14 +52,25 @@
     "access": "public"
   },
   "peerDependencies": {
-    "@earendil-works/pi-coding-agent": "^0.80.3"
+    "@earendil-works/pi-agent-core": "*",
+    "@earendil-works/pi-ai": "*",
+    "@earendil-works/pi-coding-agent": "*",
+    "@earendil-works/pi-tui": "*",
+    "typebox": "*"
   },
   "devDependencies": {
-    "@earendil-works/pi-coding-agent": "^0.80.3",
+    "@earendil-works/pi-agent-core": "^0.80.6",
+    "@earendil-works/pi-ai": "^0.80.6",
+    "@earendil-works/pi-coding-agent": "^0.80.6",
+    "@earendil-works/pi-tui": "^0.80.6",
+    "typebox": "latest",
     "@types/node": "^26.0.0",
-    "typescript": "^7.0.2"
+    "typescript": "^6.0.3"
   },
   "engines": {
     "node": ">=22.18.0"
+  },
+  "overrides": {
+    "protobufjs": ">=7.6.3 <8.0.0"
   }
 }
