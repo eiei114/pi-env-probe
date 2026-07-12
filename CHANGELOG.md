@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Align package metadata and extension patterns with pi-extension-template 0.80.x baseline (DOT-823)
+
 ## 0.1.2 - 2026-07-04
 
 - retry npm publish after npm registry/trusted publisher settings repair

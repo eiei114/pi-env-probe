@@ -12,12 +12,16 @@ import { probe } from "../lib/probe.ts";
  * Register the `/env-probe` slash command with the Pi extension API.
  */
 export default function (pi: ExtensionAPI) {
+  pi.on("session_shutdown", async () => {});
+
   pi.registerCommand("env-probe", {
     description: "Run environment diagnostics (shell, PATH, encoding, non-ASCII path risks)",
     handler: async (_args, ctx) => {
       const result = probe();
       const formatted = JSON.stringify(result, null, 2);
-      ctx.ui.notify("env-probe results collected", "info");
+      if (ctx.hasUI) {
+        ctx.ui.notify("env-probe results collected", "info");
+      }
       console.log(formatted);
     },
   });

@@ -35,6 +35,7 @@ test("extension module loads and registers env-probe command", () => {
 
   const commands = [];
   registerExtension({
+    on() {},
     registerCommand(name, spec) {
       commands.push({ name, ...spec });
     },
