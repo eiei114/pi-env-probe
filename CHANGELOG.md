@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+- Bump package version to `0.1.3` for the next patch release.
+
 - Align package metadata and extension patterns with pi-extension-template 0.80.x baseline (DOT-823)
 
 ## 0.1.2 - 2026-07-04

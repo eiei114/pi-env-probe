@@ -1,7 +1,7 @@
 {
   "name": "pi-env-probe",
-  "version": "0.1.2",
-  "description": "Cross-platform environment diagnostics for Pi \u2014 shell, PATH, runtime, encoding, non-ASCII path risks in compact JSON",
+  "version": "0.1.3",
+  "description": "Cross-platform environment diagnostics for Pi — shell, PATH, runtime, encoding, non-ASCII path risks in compact JSON",
   "type": "module",
   "license": "MIT",
   "author": "eiei114",
