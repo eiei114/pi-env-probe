@@ -28,5 +28,5 @@ jobs:
           node-version: 22
           cache: npm
       - uses: oven-sh/setup-bun@v2
-      - run: npm ci
+      - run: npm ci --legacy-peer-deps
       - run: npm run ci
