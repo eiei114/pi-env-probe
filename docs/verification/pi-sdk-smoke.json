@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "verification_contract": "pi-sdk-behavior-v2",
+  "sdk_versions": {
+    "@earendil-works/pi-agent-core": "1.1.0",
+    "@earendil-works/pi-ai": "1.1.0",
+    "@earendil-works/pi-coding-agent": "1.1.0",
+    "@earendil-works/pi-tui": "1.1.0"
+  },
+  "platform": "win32",
+  "model_inference": "none; actual Pi 1.1.0 host loads the extension and handles /env-probe RPC input",
+  "unhandled_errors": 0,
+  "extension_load_errors": 0,
+  "cases": [
+    {
+      "name": "extension_load",
+      "command": "npm run smoke:pi",
+      "exit_code": 0,
+      "passed": true,
+      "evidence": "{\"id\":\"command-registration\",\"type\":\"response\",\"command\":\"get_commands\",\"success\":true,\"data\":{\"commands\":[{\"name\":\"env-probe\",\"description\":\"Run environment diagnostics (shell, PATH, encoding, non-ASCII path risks)\",\"source\":\"extension\",\"sourceInfo\":{\"path\":\"<repo>\\\\extensions\\\\index.ts\",\"source\":\"cli\",\"scope\":\"temporary\",\"origin\":\"top-level\"}}]}}\n",
+      "assertions": [
+        {
+          "id": "extension_registered",
+          "expected": "The actual Pi host lists /env-probe as an extension command",
+          "observed": "{\"listing\":{\"id\":\"command-registration\",\"type\":\"response\",\"command\":\"get_commands\",\"success\":true,\"data\":{\"commands\":[{\"name\":\"env-probe\",\"description\":\"Run environment diagnostics (shell, PATH, encoding, non-ASCII path risks)\",\"source\":\"extension\",\"sourceInfo\":{\"path\":\"<repo>\\\\extensions\\\\index.ts\",\"source\":\"cli\",\"scope\":\"temporary\",\"origin\":\"top-level\"}}]}},\"command\":{\"name\":\"env-probe\",\"description\":\"Run environment diagnostics (shell, PATH, encoding, non-ASCII path risks)\",\"source\":\"extension\",\"sourceInfo\":{\"path\":\"<repo>\\\\extensions\\\\index.ts\",\"source\":\"cli\",\"scope\":\"temporary\",\"origin\":\"top-level\"}}}",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "happy_path",
+      "command": "npm run smoke:pi",
+      "exit_code": 0,
+      "passed": true,
+      "evidence": "{\"type\":\"extension_ui_request\",\"id\":\"3d03308d-175a-4386-838e-75522ccc049c\",\"method\":\"notify\",\"message\":\"env-probe results collected\",\"notifyType\":\"info\"}\n{\"id\":\"command-registration\",\"type\":\"response\",\"command\":\"get_commands\",\"success\":true,\"data\":{\"commands\":[{\"name\":\"env-probe\",\"description\":\"Run environment diagnostics (shell, PATH, encoding, non-ASCII path risks)\",\"source\":\"extension\",\"sourceInfo\":{\"path\":\"<repo>\\\\extensions\\\\index.ts\",\"source\":\"cli\",\"scope\":\"temporary\",\"origin\":\"top-level\"}}]}}\n{\"id\":\"feature-response\",\"type\":\"response\",\"command\":\"prompt\",\"success\":true,\"data\":{\"disposition\":\"handled\"}}\n\n{\n  \"shell\": \"cmd\",\n  \"shell_available\": true,\n  \"bash_in_path\": true,\n  \"pwsh_in_path\": true,\n  \"path_separator\": \";\",\n  \"node_version\": \"v26.8.1\",\n  \"bun_version\": \"1.4.3\",\n  \"python_version\": \"Python 3.14.7\",\n  \"encoding\": \"utf8\",\n  \"has_non_ascii_paths_in_cwd\": false,\n  \"risks\": []\n}\n",
+      "assertions": [
+        {
+          "id": "feature_response",
+          "expected": "The actual Pi host handles /env-probe and emits a complete diagnostics JSON object",
+          "observed": "{\"prompt\":{\"id\":\"feature-response\",\"type\":\"response\",\"command\":\"prompt\",\"success\":true,\"data\":{\"disposition\":\"handled\"}},\"probe_result\":{\"shell\":\"cmd\",\"shell_available\":true,\"bash_in_path\":true,\"pwsh_in_path\":true,\"path_separator\":\";\",\"node_version\":\"v26.8.1\",\"bun_version\":\"1.4.3\",\"python_version\":\"Python 3.14.7\",\"encoding\":\"utf8\",\"has_non_ascii_paths_in_cwd\":false,\"risks\":[]},\"passed\":true}",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "error_path",
+      "command": "npm run smoke:pi",
+      "exit_code": 0,
+      "passed": true,
+      "evidence": "{\"type\":\"response\",\"command\":\"parse\",\"success\":false,\"error\":\"Failed to parse command: Unexpected token 'o', \\\"not-json\\\" is not valid JSON\"}\n",
+      "assertions": [
+        {
+          "id": "handled_error",
+          "expected": "Malformed RPC input returns a structured parse failure without an unhandled process error",
+          "observed": "{\"type\":\"response\",\"command\":\"parse\",\"success\":false,\"error\":\"Failed to parse command: Unexpected token 'o', \\\"not-json\\\" is not valid JSON\"}",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "reload_cleanup",
+      "command": "npm run smoke:pi",
+      "exit_code": 0,
+      "passed": true,
+      "evidence": "{\"type\":\"extension_ui_request\",\"id\":\"cc4fe186-3dd1-4113-be26-ac4610c9a208\",\"method\":\"notify\",\"message\":\"env-probe results collected\",\"notifyType\":\"info\"}\n{\"id\":\"command-registration\",\"type\":\"response\",\"command\":\"get_commands\",\"success\":true,\"data\":{\"commands\":[{\"name\":\"env-probe\",\"description\":\"Run environment diagnostics (shell, PATH, encoding, non-ASCII path risks)\",\"source\":\"extension\",\"sourceInfo\":{\"path\":\"<repo>\\\\extensions\\\\index.ts\",\"source\":\"cli\",\"scope\":\"temporary\",\"origin\":\"top-level\"}}]}}\n{\"id\":\"feature-response\",\"type\":\"response\",\"command\":\"prompt\",\"success\":true,\"data\":{\"disposition\":\"handled\"}}\n\n{\n  \"shell\": \"cmd\",\n  \"shell_available\": true,\n  \"bash_in_path\": true,\n  \"pwsh_in_path\": true,\n  \"path_separator\": \";\",\n  \"node_version\": \"v26.8.1\",\n  \"bun_version\": \"1.4.3\",\n  \"python_version\": \"Python 3.14.7\",\n  \"encoding\": \"utf8\",\n  \"has_non_ascii_paths_in_cwd\": false,\n  \"risks\": []\n}\n",
+      "assertions": [
+        {
+          "id": "reloaded_extension_registered",
+          "expected": "A second actual Pi process registers /env-probe",
+          "observed": "{\"listing\":{\"id\":\"command-registration\",\"type\":\"response\",\"command\":\"get_commands\",\"success\":true,\"data\":{\"commands\":[{\"name\":\"env-probe\",\"description\":\"Run environment diagnostics (shell, PATH, encoding, non-ASCII path risks)\",\"source\":\"extension\",\"sourceInfo\":{\"path\":\"<repo>\\\\extensions\\\\index.ts\",\"source\":\"cli\",\"scope\":\"temporary\",\"origin\":\"top-level\"}}]}},\"command\":{\"name\":\"env-probe\",\"description\":\"Run environment diagnostics (shell, PATH, encoding, non-ASCII path risks)\",\"source\":\"extension\",\"sourceInfo\":{\"path\":\"<repo>\\\\extensions\\\\index.ts\",\"source\":\"cli\",\"scope\":\"temporary\",\"origin\":\"top-level\"}}}",
+          "passed": true
+        },
+        {
+          "id": "reloaded_feature_response",
+          "expected": "The second Pi process handles /env-probe and emits complete diagnostics JSON",
+          "observed": "{\"prompt\":{\"id\":\"feature-response\",\"type\":\"response\",\"command\":\"prompt\",\"success\":true,\"data\":{\"disposition\":\"handled\"}},\"probe_result\":{\"shell\":\"cmd\",\"shell_available\":true,\"bash_in_path\":true,\"pwsh_in_path\":true,\"path_separator\":\";\",\"node_version\":\"v26.8.1\",\"bun_version\":\"1.4.3\",\"python_version\":\"Python 3.14.7\",\"encoding\":\"utf8\",\"has_non_ascii_paths_in_cwd\":false,\"risks\":[]},\"passed\":true}",
+          "passed": true
+        },
+        {
+          "id": "clean_shutdown",
+          "expected": "The second Pi process exits zero without unhandled or shutdown errors",
+          "observed": "{\"exit_code\":0,\"process_exited\":true,\"errors\":false}",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "host_shell",
+      "command": "npm run smoke:pi",
+      "exit_code": 0,
+      "passed": true,
+      "evidence": "1.1.0\n",
+      "assertions": [
+        {
+          "id": "native_shell_boundary",
+          "expected": "The native host shell launches the locally pinned Pi CLI and returns its exact version",
+          "observed": "{\"exit_code\":0,\"process_exited\":true,\"output\":\"1.1.0\",\"expectedVersion\":\"1.1.0\"}",
+          "passed": true
+        }
+      ]
+    }
+  ]
+}
