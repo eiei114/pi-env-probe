@@ -104,7 +104,7 @@ try {
     verification_contract: VERIFICATION_CONTRACT,
     sdk_versions: installedVersions,
     platform: process.platform,
-    model_inference: "none; actual Pi 1.1.0 host loads the extension and handles /env-probe RPC input",
+    model_inference: `none; actual Pi ${installedVersions["@earendil-works/pi-coding-agent"]} host loads the extension and handles /env-probe RPC input`,
     unhandled_errors: cases.filter((item) => item.hasUnhandledError).length,
     extension_load_errors: cases.filter((item) => item.hasLoadError || (item.name === "extension_load" && !item.passed)).length,
     cases: cases.map(({ hasUnhandledError, hasLoadError, ...item }) => item),
