@@ -33,7 +33,7 @@ const rpcArgs = [piCli, "--offline", "--no-session", "--no-tools", "--no-extensi
 const commandRequest = `${JSON.stringify({ type: "get_commands", id: "command-registration" })}\n`;
 const featureRequests = `${commandRequest}${JSON.stringify({ type: "prompt", id: "feature-response", message: "/env-probe" })}\n`;
 
-function runProcess(name, executable, args, input) {
+function runProcess(name, executable, args, input, behaviorContext = {}) {
   const result = spawnSync(executable, args, {
     cwd: root,
     env,
@@ -62,8 +62,10 @@ function runProcess(name, executable, args, input) {
     fullOutput,
     exit_code,
     process_exited,
+    processId: result.pid,
     expectedVersion: installedVersions["@earendil-works/pi-coding-agent"],
     platform: process.platform,
+    ...behaviorContext,
   });
   const hasUnhandledError = UNHANDLED_ERROR_PATTERN.test(fullOutput);
   const hasLoadError = EXTENSION_LOAD_ERROR_PATTERN.test(fullOutput);
@@ -74,6 +76,47 @@ function runProcess(name, executable, args, input) {
     passed: process_exited && exit_code === 0 && !hasUnhandledError && !hasLoadError && assertions.every((item) => item.passed),
     evidence: fullOutput.slice(-6000) || "No output captured",
     assertions,
+    process_id: result.pid,
+    process_exited,
+    fullOutput,
+    responses,
+    hasUnhandledError,
+    hasLoadError,
+  };
+}
+
+function runReloadCleanup() {
+  const firstProcess = runProcess("happy_path", process.execPath, rpcArgs, featureRequests);
+  const secondProcess = runProcess("reload_cleanup", process.execPath, rpcArgs, featureRequests, {
+    previousProcess: {
+      pid: firstProcess.process_id,
+      exit_code: firstProcess.exit_code,
+      process_exited: firstProcess.process_exited,
+      passed: firstProcess.passed,
+      hasErrors: firstProcess.hasUnhandledError || firstProcess.hasLoadError,
+    },
+  });
+  const hasUnhandledError = firstProcess.hasUnhandledError || secondProcess.hasUnhandledError;
+  const hasLoadError = firstProcess.hasLoadError || secondProcess.hasLoadError;
+
+  return {
+    ...secondProcess,
+    name: "reload_cleanup",
+    passed: firstProcess.passed && secondProcess.passed && !hasUnhandledError && !hasLoadError,
+    evidence: JSON.stringify({
+      first_process: {
+        pid: firstProcess.process_id,
+        exit_code: firstProcess.exit_code,
+        passed: firstProcess.passed,
+        evidence: firstProcess.evidence,
+      },
+      second_process: {
+        pid: secondProcess.process_id,
+        exit_code: secondProcess.exit_code,
+        passed: secondProcess.passed,
+        evidence: secondProcess.evidence,
+      },
+    }),
     hasUnhandledError,
     hasLoadError,
   };
@@ -94,7 +137,7 @@ try {
     runProcess("extension_load", process.execPath, rpcArgs, commandRequest),
     runProcess("happy_path", process.execPath, rpcArgs, featureRequests),
     runProcess("error_path", process.execPath, rpcArgs, "not-json\n"),
-    runProcess("reload_cleanup", process.execPath, rpcArgs, featureRequests),
+    runReloadCleanup(),
   ];
   const [shell, args, input] = nativeShellArgs();
   cases.push(runProcess("host_shell", shell, args, input));
@@ -107,7 +150,7 @@ try {
     model_inference: `none; actual Pi ${installedVersions["@earendil-works/pi-coding-agent"]} host loads the extension and handles /env-probe RPC input`,
     unhandled_errors: cases.filter((item) => item.hasUnhandledError).length,
     extension_load_errors: cases.filter((item) => item.hasLoadError || (item.name === "extension_load" && !item.passed)).length,
-    cases: cases.map(({ hasUnhandledError, hasLoadError, ...item }) => item),
+    cases: cases.map(({ hasUnhandledError, hasLoadError, process_id, process_exited, fullOutput, responses, ...item }) => item),
   };
   mkdirSync(dirname(reportPath), { recursive: true });
   writeFileSync(reportPath, `${JSON.stringify(report, null, 2)}\n`);

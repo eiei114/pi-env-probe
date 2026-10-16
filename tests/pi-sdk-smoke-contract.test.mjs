@@ -78,6 +78,13 @@ test("committed smoke evidence satisfies the v2 report contract without local ab
     reload_cleanup: ["reloaded_extension_registered", "reloaded_feature_response", "clean_shutdown"],
     host_shell: ["native_shell_boundary"],
   });
+  const reloadShutdown = report.cases.find((item) => item.name === "reload_cleanup")
+    .assertions.find((item) => item.id === "clean_shutdown");
+  const reloadProcesses = JSON.parse(reloadShutdown.observed);
+  assert.equal(reloadProcesses.actual_process_count, 2);
+  assert.ok(Number.isInteger(reloadProcesses.first_process_id));
+  assert.ok(Number.isInteger(reloadProcesses.second_process_id));
+  assert.notEqual(reloadProcesses.first_process_id, reloadProcesses.second_process_id);
   for (const item of report.cases) {
     assert.equal(item.exit_code, 0);
     assert.equal(item.passed, true);
@@ -123,20 +130,60 @@ test("error_path requires an actual handled malformed-RPC response", () => {
 });
 
 test("reload_cleanup requires second-process registration, feature response, and clean exit", () => {
-  const actual = observe("reload_cleanup", { responses: [registration, prompt], fullOutput: featureOutput });
+  const firstProcess = {
+    pid: 101,
+    exit_code: 0,
+    process_exited: true,
+    passed: true,
+    hasErrors: false,
+  };
+  const actual = observe("reload_cleanup", {
+    responses: [registration, prompt],
+    fullOutput: featureOutput,
+    processId: 202,
+    previousProcess: firstProcess,
+  });
   assert.deepEqual(actual.map((item) => item.id), [
     "reloaded_extension_registered", "reloaded_feature_response", "clean_shutdown",
   ]);
   assert.ok(actual.every((item) => item.passed));
+  assert.equal(JSON.parse(actual[2].observed).actual_process_count, 2);
 
-  const exitOnly = observe("reload_cleanup", { responses: [], fullOutput: "", exit_code: 0, process_exited: true });
+  const exitOnly = observe("reload_cleanup", {
+    responses: [], fullOutput: "", exit_code: 0, process_exited: true, processId: 202, previousProcess: firstProcess,
+  });
   assert.equal(exitOnly[0].passed, false);
   assert.equal(exitOnly[1].passed, false);
   assert.equal(exitOnly[2].passed, true);
-  assert.equal(observe("reload_cleanup", { responses: [registration], fullOutput: featureOutput })[1].passed, false);
-  assert.equal(observe("reload_cleanup", { responses: [registration, prompt], fullOutput: "UnhandledPromiseRejection" })[2].passed, false);
-  assert.equal(observe("reload_cleanup", { responses: [registration, prompt], fullOutput: featureOutput, exit_code: 1 })[2].passed, false);
-  assert.equal(observe("reload_cleanup", { responses: [registration, prompt], fullOutput: featureOutput, process_exited: false })[2].passed, false);
+  const oneProcess = observe("reload_cleanup", {
+    responses: [registration, prompt], fullOutput: featureOutput, processId: 101,
+  });
+  assert.ok(oneProcess.every((item) => !item.passed));
+  const duplicateProcessId = observe("reload_cleanup", {
+    responses: [registration, prompt], fullOutput: featureOutput, processId: 101,
+    previousProcess: firstProcess,
+  });
+  assert.ok(duplicateProcessId.every((item) => !item.passed));
+  const failedFirstProcess = observe("reload_cleanup", {
+    responses: [registration, prompt], fullOutput: featureOutput, processId: 202,
+    previousProcess: { ...firstProcess, passed: false },
+  });
+  assert.equal(failedFirstProcess[2].passed, false);
+  assert.equal(observe("reload_cleanup", {
+    responses: [registration], fullOutput: featureOutput, processId: 202, previousProcess: firstProcess,
+  })[1].passed, false);
+  assert.equal(observe("reload_cleanup", {
+    responses: [registration, prompt], fullOutput: "UnhandledPromiseRejection", processId: 202,
+    previousProcess: firstProcess,
+  })[2].passed, false);
+  assert.equal(observe("reload_cleanup", {
+    responses: [registration, prompt], fullOutput: featureOutput, exit_code: 1, processId: 202,
+    previousProcess: firstProcess,
+  })[2].passed, false);
+  assert.equal(observe("reload_cleanup", {
+    responses: [registration, prompt], fullOutput: featureOutput, process_exited: false, processId: 202,
+    previousProcess: firstProcess,
+  })[2].passed, false);
 });
 
 test("host_shell requires an exact pinned version and actual native process exit", () => {

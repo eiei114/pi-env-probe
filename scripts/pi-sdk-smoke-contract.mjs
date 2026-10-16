@@ -102,6 +102,8 @@ export function behaviorAssertions(name, {
   fullOutput = "",
   exit_code = 1,
   process_exited = false,
+  processId = undefined,
+  previousProcess = undefined,
   expectedVersion = SDK_VERSIONS["@earendil-works/pi-coding-agent"],
   platform = process.platform,
 }) {
@@ -122,14 +124,33 @@ export function behaviorAssertions(name, {
       parseError ?? null, parseError?.success === false && typeof parseError.error === "string" && parseError.error.length > 0)];
   }
   if (name === "reload_cleanup") {
+    const processIds = [previousProcess?.pid, processId];
+    const isDistinctProcessPair = processIds.every(Number.isInteger) && processIds[0] !== processIds[1];
+    const secondProcessWasObserved = isDistinctProcessPair && previousProcess.process_exited === true &&
+      previousProcess.exit_code === 0 && previousProcess.passed === true && previousProcess.hasErrors === false;
+    const shutdownErrors = UNHANDLED_ERROR_PATTERN.test(fullOutput);
+    const processPair = {
+      actual_process_count: new Set(processIds.filter(Number.isInteger)).size,
+      first_process_id: previousProcess?.pid ?? null,
+      first_process_exit_code: previousProcess?.exit_code ?? null,
+      first_process_exited: previousProcess?.process_exited === true,
+      first_process_passed: previousProcess?.passed === true,
+      first_process_errors: previousProcess?.hasErrors ?? null,
+      second_process_id: processId ?? null,
+      second_process_exit_code: exit_code,
+      second_process_exited: process_exited,
+      second_process_errors: shutdownErrors,
+    };
     return [
-      assertion("reloaded_extension_registered", "A second actual Pi process registers /env-probe",
-        registration, registration.command !== null),
-      assertion("reloaded_feature_response", "The second Pi process handles /env-probe and emits complete diagnostics JSON",
-        feature, feature.passed),
-      assertion("clean_shutdown", "The second Pi process exits zero without unhandled or shutdown errors",
-        { exit_code, process_exited, errors: UNHANDLED_ERROR_PATTERN.test(fullOutput) },
-        process_exited && exit_code === 0 && !UNHANDLED_ERROR_PATTERN.test(fullOutput)),
+      assertion("reloaded_extension_registered", "A distinct second actual Pi process registers /env-probe",
+        { process_id: processId ?? null, listing: registration },
+        secondProcessWasObserved && registration.command !== null),
+      assertion("reloaded_feature_response", "The distinct second Pi process handles /env-probe and emits complete diagnostics JSON",
+        { process_id: processId ?? null, ...feature },
+        secondProcessWasObserved && feature.passed),
+      assertion("clean_shutdown", "Both actual Pi processes exit cleanly; the second exits zero without unhandled or shutdown errors",
+        processPair,
+        secondProcessWasObserved && process_exited && exit_code === 0 && !shutdownErrors),
     ];
   }
   if (name === "host_shell") {
