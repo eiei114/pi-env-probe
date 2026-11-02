@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.1.11] - 2026-11-03
+
+### Changed
+
+- Update the `@earendil-works/pi-ai` development pin to 1.4.0 and refresh Pi SDK smoke evidence.
+
 ## [0.1.10] - 2026-11-02
 
 ### Changed
