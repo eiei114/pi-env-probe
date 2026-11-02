@@ -1,10 +1,14 @@
 export const VERIFICATION_CONTRACT = "pi-sdk-behavior-v2";
-export const SDK_VERSIONS = {
-  "@earendil-works/pi-agent-core": "1.2.0",
-  "@earendil-works/pi-ai": "1.2.0",
-  "@earendil-works/pi-coding-agent": "1.2.0",
-  "@earendil-works/pi-tui": "1.2.0",
-};
+export const SDK_PACKAGE_NAMES = [
+  "@earendil-works/pi-agent-core",
+  "@earendil-works/pi-ai",
+  "@earendil-works/pi-coding-agent",
+  "@earendil-works/pi-tui",
+];
+
+export function sdkVersionsFromManifest(manifest) {
+  return Object.fromEntries(SDK_PACKAGE_NAMES.map((name) => [name, manifest.devDependencies?.[name] ?? null]));
+}
 export const UNHANDLED_ERROR_PATTERN = /UnhandledPromiseRejection|uncaught exception|shutdown error|error during shutdown/i;
 export const EXTENSION_LOAD_ERROR_PATTERN = /Failed to load extension|Error loading extension|Failed to load package|Extension .* (?:failed|could not load)/i;
 
@@ -104,7 +108,7 @@ export function behaviorAssertions(name, {
   process_exited = false,
   processId = undefined,
   previousProcess = undefined,
-  expectedVersion = SDK_VERSIONS["@earendil-works/pi-coding-agent"],
+  expectedVersion,
   platform = process.platform,
 }) {
   const registration = registeredCommand(responses);

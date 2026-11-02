@@ -6,7 +6,8 @@ import {
   behaviorAssertions,
   EXTENSION_LOAD_ERROR_PATTERN,
   parseJsonLines,
-  SDK_VERSIONS,
+  SDK_PACKAGE_NAMES,
+  sdkVersionsFromManifest,
   UNHANDLED_ERROR_PATTERN,
   VERIFICATION_CONTRACT,
 } from "./pi-sdk-smoke-contract.mjs";
@@ -15,12 +16,13 @@ const root = resolve(import.meta.dirname, "..");
 const reportPath = resolve(root, "docs/verification/pi-sdk-smoke.json");
 const readJson = (path) => JSON.parse(readFileSync(path, "utf8"));
 const manifest = readJson(resolve(root, "package.json"));
-const installedVersions = Object.fromEntries(Object.keys(SDK_VERSIONS).map((name) =>
+const SDK_VERSIONS = sdkVersionsFromManifest(manifest);
+const installedVersions = Object.fromEntries(SDK_PACKAGE_NAMES.map((name) =>
   [name, readJson(resolve(root, "node_modules", name, "package.json")).version]));
 
 for (const [name, version] of Object.entries(SDK_VERSIONS)) {
-  if (manifest.devDependencies?.[name] !== version || installedVersions[name] !== version) {
-    throw new Error(`Smoke requires exact dev/test pin and installed version ${version} for ${name}; manifest=${manifest.devDependencies?.[name]}, installed=${installedVersions[name]}`);
+  if (typeof version !== "string" || !/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/.test(version) || installedVersions[name] !== version) {
+    throw new Error(`Smoke requires an exact manifest pin and matching installed version for ${name}; manifest=${version}, installed=${installedVersions[name]}`);
   }
 }
 

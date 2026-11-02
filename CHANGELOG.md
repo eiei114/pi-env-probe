@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.10] - 2026-11-02
+
+### Changed
+
+- Derive actual-host smoke checks from the exact Pi SDK versions pinned in the package manifest.
+- Update the `@earendil-works/pi-agent-core` development pin to 1.4.0.
+
 ## [0.1.9] - 2026-10-16
 
 ### Changed
