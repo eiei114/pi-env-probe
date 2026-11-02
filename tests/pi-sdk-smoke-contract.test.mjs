@@ -5,9 +5,13 @@ import {
   behaviorAssertions,
   parseJsonLines,
   parseJsonObjects,
-  SDK_VERSIONS,
+  SDK_PACKAGE_NAMES,
+  sdkVersionsFromManifest,
   VERIFICATION_CONTRACT,
 } from "../scripts/pi-sdk-smoke-contract.mjs";
+
+const manifest = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8"));
+const SDK_VERSIONS = sdkVersionsFromManifest(manifest);
 
 const diagnostics = {
   shell: "pwsh",
@@ -45,17 +49,20 @@ const errorResponse = {
   error: "Invalid JSON input",
 };
 const observe = (name, overrides = {}) => behaviorAssertions(name, {
-  responses: [], fullOutput: "", exit_code: 0, process_exited: true, platform: "win32", ...overrides,
+  responses: [], fullOutput: "", exit_code: 0, process_exited: true, platform: "win32",
+  expectedVersion: SDK_VERSIONS["@earendil-works/pi-coding-agent"], ...overrides,
 });
 
 test("Pi SDK behavior contract and JSON parsing handle RPC JSONL and pretty feature JSON", () => {
   assert.equal(VERIFICATION_CONTRACT, "pi-sdk-behavior-v2");
-  assert.deepEqual(SDK_VERSIONS, {
-    "@earendil-works/pi-agent-core": "1.2.0",
-    "@earendil-works/pi-ai": "1.2.0",
-    "@earendil-works/pi-coding-agent": "1.2.0",
-    "@earendil-works/pi-tui": "1.2.0",
-  });
+  assert.deepEqual(Object.keys(SDK_VERSIONS), SDK_PACKAGE_NAMES);
+  assert.ok(Object.values(SDK_VERSIONS).every((version) => typeof version === "string" &&
+    /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/.test(version)));
+  const updatedManifest = {
+    ...manifest,
+    devDependencies: { ...manifest.devDependencies, [SDK_PACKAGE_NAMES[0]]: "99.99.99" },
+  };
+  assert.equal(sdkVersionsFromManifest(updatedManifest)[SDK_PACKAGE_NAMES[0]], "99.99.99");
   assert.deepEqual(parseJsonLines(`not-json\r\n${JSON.stringify(prompt)}\n`), [prompt]);
   assert.deepEqual(parseJsonObjects(probeOutput), [diagnostics]);
 });

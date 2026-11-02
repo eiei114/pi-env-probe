@@ -1,6 +1,6 @@
 {
   "name": "pi-env-probe",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "description": "Cross-platform environment diagnostics for Pi — shell, PATH, runtime, encoding, non-ASCII path risks in compact JSON",
   "type": "module",
   "license": "MIT",
@@ -60,7 +60,7 @@
     "typebox": "*"
   },
   "devDependencies": {
-    "@earendil-works/pi-agent-core": "1.2.0",
+    "@earendil-works/pi-agent-core": "1.4.0",
     "@earendil-works/pi-ai": "1.2.0",
     "@earendil-works/pi-coding-agent": "1.2.0",
     "@earendil-works/pi-tui": "1.2.0",
