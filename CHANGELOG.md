@@ -1,10 +1,10 @@
 # Changelog
 
-## [Unreleased]
+## [0.1.12] - 2026-11-07
 
 ### Changed
 
-- Bump the `@earendil-works/*` development pins to 1.5.0 and refresh Pi SDK smoke evidence.
+- Verify the existing Pi SDK 1.5.0 development pins against the actual Windows host and refresh behavior-v2 smoke evidence.
 
 ## [0.1.11] - 2026-11-03
 
