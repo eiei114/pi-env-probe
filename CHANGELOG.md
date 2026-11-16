@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.1.13] - 2026-11-17
+
+### Changed
+
+- Bump the Pi SDK development pins to 1.5.2 and refresh behavior-v2 smoke evidence against the actual Windows host.
+
 ## [0.1.12] - 2026-11-07
 
 ### Changed
