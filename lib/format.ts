@@ -16,10 +16,8 @@ const UNKNOWN_PLACEHOLDER = "[unknown_risk]";
 const MAX_VALUE = 128;
 const MAX_OUTPUT = 4096;
 const PATH_LIKE_RE = /(^[A-Za-z]:[\\/]|[\\/])/;
-
-function containsControlChars(value: string): boolean {
-  return /[\u0000-\u001F\u007F\u0080-\u009F]/.test(value);
-}
+// Allow conservative version-like outputs only (e.g. v22.0.0, 1.1.0, Python 3.12.0, Bun 1.2.3)
+const SAFE_VERSION_RE = /^(v?\d+(?:\.\d+)*(?:[-+._][0-9A-Za-z]+)*(?:\s+[0-9A-Za-z]+(?:\.\d+)*)*(?:\s*\([^)]+\))?|Python\s+\d+(?:\.\d+)*(?:[^\s]*)?)$/;
 
 function sanitizeValue(value: string): string {
   // Normalize C0/C1 control chars (including newlines/tabs, DEL, NEL, etc.) and cap length.
@@ -30,9 +28,11 @@ function sanitizeValue(value: string): string {
 
 function displayVersion(value: string | null): string {
   if (value === null) return "not available";
-  // Do not disclose path-like or raw subprocess content; redact if it looks like a path.
+  // Do not disclose paths, filenames, or raw subprocess output; only show safe version-like values.
   if (PATH_LIKE_RE.test(value)) return "[redacted]";
-  return sanitizeValue(value);
+  const sanitized = sanitizeValue(value);
+  if (!SAFE_VERSION_RE.test(sanitized)) return "[redacted]";
+  return sanitized;
 }
 
 function shellState(result: ProbeResult): string {

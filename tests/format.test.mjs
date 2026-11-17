@@ -113,10 +113,10 @@ test("formatText sanitizes/caps runtime values and bounds output without leaking
   assert.ok(displayed.length <= 128);
 });
 
-test("formatText sanitizes Unicode C1 controls and redacts path-like runtime values", () => {
-  const c1 = formatText(baseResult({ node_version: "v22\u0085test", risks: [] }));
+test("formatText sanitizes Unicode C1 controls and redacts path-like or unsafe runtime values", () => {
+  const c1 = formatText(baseResult({ node_version: "v22\u00851.0.0", risks: [] }));
   assert.ok(!c1.includes("\u0085"), "C1 control should be sanitized");
-  assert.ok(c1.includes("Node.js: v22 test") || c1.includes("Node.js: v22"));
+  assert.ok(c1.includes("Node.js: v22 1.0.0"));
 
   const pathLeak = formatText(baseResult({ node_version: "/SENSITIVE_TEST_PATH", risks: [] }));
   assert.ok(!pathLeak.includes("/SENSITIVE_TEST_PATH"));
@@ -125,4 +125,12 @@ test("formatText sanitizes Unicode C1 controls and redacts path-like runtime val
   const winPath = formatText(baseResult({ bun_version: "C:\\secret\\bun.exe", risks: [] }));
   assert.ok(!winPath.includes("C:\\secret\\bun.exe"));
   assert.ok(winPath.includes("Bun: [redacted]"));
+
+  const filename = formatText(baseResult({ node_version: "private.txt", risks: [] }));
+  assert.ok(!filename.includes("private.txt"));
+  assert.ok(filename.includes("Node.js: [redacted]"));
+
+  const arbitrary = formatText(baseResult({ python_version: "user secret output", risks: [] }));
+  assert.ok(!arbitrary.includes("user secret output"));
+  assert.ok(arbitrary.includes("Python: [redacted]"));
 });

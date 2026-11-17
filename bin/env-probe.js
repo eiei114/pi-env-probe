@@ -8,7 +8,6 @@
 
 import { probe } from "../lib/probe.ts";
 import { formatJson, formatText, parseFormatArgs } from "../lib/format.ts";
-import { appendFileSync } from "node:fs";
 
 const parsed = parseFormatArgs(process.argv.slice(2));
 if (!parsed.ok) {
@@ -17,11 +16,6 @@ if (!parsed.ok) {
 }
 
 const result = probe();
-const countFile = process.env.PI_ENV_PROBE_COUNT_FILE;
-if (countFile) {
-  appendFileSync(countFile, "1\n", "utf8");
-}
-
 if (parsed.format === "text") {
   process.stdout.write(formatText(result));
 } else {

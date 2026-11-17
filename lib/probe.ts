@@ -8,7 +8,7 @@
  */
 
 import { execSync } from "node:child_process";
-import { readdirSync } from "node:fs";
+import fs from "node:fs";
 
 export type ShellName = "bash" | "pwsh" | "cmd" | "zsh" | null;
 
@@ -134,7 +134,7 @@ const NON_ASCII_RE = /[^\x00-\x7F]/;
  */
 function hasNonAsciiPathsInCwd(): boolean {
   try {
-    const entries = readdirSync(process.cwd());
+    const entries = fs.readdirSync(process.cwd());
     return entries.some((entry) => NON_ASCII_RE.test(entry));
   } catch {
     return false;
@@ -158,6 +158,14 @@ function binaryInPath(binary: string): boolean {
  * Run all probes and return the result object.
  */
 export function probe(): ProbeResult {
+  const countFile = process.env.PI_ENV_PROBE_COUNT_FILE;
+  if (countFile) {
+    try {
+      fs.appendFileSync(countFile, "1\n", "utf8");
+    } catch {
+      // ignore instrumentation errors
+    }
+  }
   try {
     const shell = detectShell();
     const bashInPath = binaryInPath("bash");
