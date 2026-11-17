@@ -100,8 +100,24 @@ Then run:
 Or use the standalone CLI:
 
 ```bash
+# default: JSON output
 node bin/env-probe.js
+
+# explicit JSON output
+node bin/env-probe.js --format json
+node bin/env-probe.js --format=json
+
+# human-readable summary of existing probe results
+node bin/env-probe.js --format text
+node bin/env-probe.js --format=text
 ```
+
+### CLI output modes
+
+- **Default / `--format json` / `--format=json`**: emits the existing compact JSON probe result (unchanged shape and behavior).
+- **`--format text` / `--format=text`**: emits a human-readable summary derived only from that same probe result (one `probe()` call per invocation). It reports the detected shell state, Node.js/Bun/Python availability and versions when available, and findings from existing risk codes in shell → runtime → path order.
+- **Detection limits**: text mode summarizes only the checks `probe()` already performs (shell availability, Node.js/Bun/Python availability, and non-ASCII names directly under the current working directory). It does not claim the entire environment is safe, does not reveal filenames/paths or raw environment/encoding/subprocess values, and does not perform repairs or additional probes.
+- **Usage errors**: a missing or unsupported `--format` value writes a short usage error to stderr, exits non-zero, and writes no diagnostic JSON or echoed invalid value to stdout.
 
 ## Package contents
 
