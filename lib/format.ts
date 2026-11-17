@@ -15,16 +15,23 @@ const PATH_RISKS = ["non_ascii_paths_in_cwd"] as const;
 const UNKNOWN_PLACEHOLDER = "[unknown_risk]";
 const MAX_VALUE = 128;
 const MAX_OUTPUT = 4096;
+const PATH_LIKE_RE = /(^[A-Za-z]:[\\/]|[\\/])/;
+
+function containsControlChars(value: string): boolean {
+  return /[\u0000-\u001F\u007F\u0080-\u009F]/.test(value);
+}
 
 function sanitizeValue(value: string): string {
-  // Normalize control chars (including newlines/tabs) to spaces and cap length.
-  const normalized = value.replace(/[\u0000-\u001F\u007F]/g, " ");
+  // Normalize C0/C1 control chars (including newlines/tabs, DEL, NEL, etc.) and cap length.
+  const normalized = value.replace(/[\u0000-\u001F\u007F\u0080-\u009F]/g, " ");
   if (normalized.length <= MAX_VALUE) return normalized;
   return normalized.slice(0, MAX_VALUE);
 }
 
 function displayVersion(value: string | null): string {
   if (value === null) return "not available";
+  // Do not disclose path-like or raw subprocess content; redact if it looks like a path.
+  if (PATH_LIKE_RE.test(value)) return "[redacted]";
   return sanitizeValue(value);
 }
 

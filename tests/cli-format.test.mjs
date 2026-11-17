@@ -1,16 +1,19 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 
 const repoRoot = fileURLToPath(new URL("..", import.meta.url));
 const cliPath = fileURLToPath(new URL("../bin/env-probe.js", import.meta.url));
-const probeCountHarness = fileURLToPath(new URL("./helpers/cli-probe-count-harness.mjs", import.meta.url));
 
-function runCli(args = []) {
+function runCli(args = [], env = {}) {
   return spawnSync(process.execPath, [cliPath, ...args], {
     cwd: repoRoot,
     encoding: "utf8",
+    env: { ...process.env, ...env },
   });
 }
 
@@ -53,15 +56,16 @@ test("CLI invalid/missing format values produce non-zero stderr usage with no st
 });
 
 test("CLI single-probe-call invariant for json and text modes", () => {
-  for (const modeArgs of [[], ["--format", "json"], ["--format", "text"]]) {
-    const res = spawnSync(
-      process.execPath,
-      ["--experimental-strip-types", probeCountHarness, ...modeArgs],
-      { cwd: repoRoot, encoding: "utf8" },
-    );
-    assert.equal(res.status, 0, res.stderr || res.stdout);
-    const parsed = JSON.parse(res.stderr || "{}");
-    // harness prints count JSON to stderr to keep stdout clean for format checks
-    assert.equal(parsed.calls, 1, `expected one probe() call for args ${JSON.stringify(modeArgs)}`);
+  const dir = mkdtempSync(join(tmpdir(), "pi-env-probe-count-"));
+  try {
+    for (const modeArgs of [[], ["--format", "json"], ["--format", "text"]]) {
+      const countFile = join(dir, `count-${modeArgs.join("-") || "default"}.txt`);
+      const res = runCli(modeArgs, { PI_ENV_PROBE_COUNT_FILE: countFile });
+      assert.equal(res.status, 0, res.stderr || res.stdout);
+      const lines = readFileSync(countFile, "utf8").trim().split(/\r?\n/).filter(Boolean);
+      assert.equal(lines.length, 1, `expected one probe() call for args ${JSON.stringify(modeArgs)}`);
+    }
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
   }
 });
