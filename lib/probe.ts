@@ -8,7 +8,7 @@
  */
 
 import { execSync } from "node:child_process";
-import { readdirSync } from "node:fs";
+import fs from "node:fs";
 
 export type ShellName = "bash" | "pwsh" | "cmd" | "zsh" | null;
 
@@ -134,7 +134,7 @@ const NON_ASCII_RE = /[^\x00-\x7F]/;
  */
 function hasNonAsciiPathsInCwd(): boolean {
   try {
-    const entries = readdirSync(process.cwd());
+    const entries = fs.readdirSync(process.cwd());
     return entries.some((entry) => NON_ASCII_RE.test(entry));
   } catch {
     return false;

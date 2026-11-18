@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.0] - 2026-11-18
+
+### Added
+
+- Add opt-in human-readable CLI text output via `--format text` / `--format=text` while keeping JSON output as the default and unchanged.
+
 ## [0.1.13] - 2026-11-17
 
 ### Changed
