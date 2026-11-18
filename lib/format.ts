@@ -16,8 +16,8 @@ const UNKNOWN_PLACEHOLDER = "[unknown_risk]";
 const MAX_VALUE = 128;
 const MAX_OUTPUT = 4096;
 const PATH_LIKE_RE = /(^[A-Za-z]:[\\/]|[\\/])/;
-// Allow conservative version-like outputs only (e.g. v22.0.0, 1.1.0, Python 3.12.0, Bun 1.2.3)
-const SAFE_VERSION_RE = /^(v?\d+(?:\.\d+)*(?:[-+._][0-9A-Za-z]+)*(?:\s+[0-9A-Za-z]+(?:\.\d+)*)*(?:\s*\([^)]+\))?|Python\s+\d+(?:\.\d+)*(?:[^\s]*)?)$/;
+// Allow only safe numeric version values: optional "Python " or "v" prefix + dot-separated digits.
+const SAFE_VERSION_RE = /^(?:Python\s+)?v?\d+(?:\.\d+)*$/;
 
 function sanitizeValue(value: string): string {
   // Normalize C0/C1 control chars (including newlines/tabs, DEL, NEL, etc.) and cap length.

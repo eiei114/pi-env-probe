@@ -116,7 +116,8 @@ test("formatText sanitizes/caps runtime values and bounds output without leaking
 test("formatText sanitizes Unicode C1 controls and redacts path-like or unsafe runtime values", () => {
   const c1 = formatText(baseResult({ node_version: "v22\u00851.0.0", risks: [] }));
   assert.ok(!c1.includes("\u0085"), "C1 control should be sanitized");
-  assert.ok(c1.includes("Node.js: v22 1.0.0"));
+  assert.ok(!c1.includes("v22 1.0.0"));
+  assert.ok(c1.includes("Node.js: [redacted]"));
 
   const pathLeak = formatText(baseResult({ node_version: "/SENSITIVE_TEST_PATH", risks: [] }));
   assert.ok(!pathLeak.includes("/SENSITIVE_TEST_PATH"));
@@ -129,6 +130,11 @@ test("formatText sanitizes Unicode C1 controls and redacts path-like or unsafe r
   const filename = formatText(baseResult({ node_version: "private.txt", risks: [] }));
   assert.ok(!filename.includes("private.txt"));
   assert.ok(filename.includes("Node.js: [redacted]"));
+
+  const parenthesized = formatText(baseResult({ node_version: "v1.2 (private.txt)", risks: [] }));
+  assert.ok(!parenthesized.includes("private.txt"));
+  assert.ok(!parenthesized.includes("v1.2 (private.txt)"));
+  assert.ok(parenthesized.includes("Node.js: [redacted]"));
 
   const arbitrary = formatText(baseResult({ python_version: "user secret output", risks: [] }));
   assert.ok(!arbitrary.includes("user secret output"));

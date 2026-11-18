@@ -158,14 +158,6 @@ function binaryInPath(binary: string): boolean {
  * Run all probes and return the result object.
  */
 export function probe(): ProbeResult {
-  const countFile = process.env.PI_ENV_PROBE_COUNT_FILE;
-  if (countFile) {
-    try {
-      fs.appendFileSync(countFile, "1\n", "utf8");
-    } catch {
-      // ignore instrumentation errors
-    }
-  }
   try {
     const shell = detectShell();
     const bashInPath = binaryInPath("bash");
