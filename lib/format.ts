@@ -149,6 +149,7 @@ export function parseFormatArgs(argv: string[]): ParsedFormat {
       format = value;
       continue;
     }
+    return { ok: false, error: "Usage: env-probe [--format json|text]\n" };
   }
   return { ok: true, format: format ?? "json" };
 }

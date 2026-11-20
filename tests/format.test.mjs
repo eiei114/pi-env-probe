@@ -35,7 +35,7 @@ test("parseFormatArgs accepts both text forms", () => {
 });
 
 test("parseFormatArgs rejects missing/unsupported format values", () => {
-  for (const argv of [["--format"], ["--format="], ["--format", "yaml"], ["--format=yaml"], ["--format", "--x"]]) {
+  for (const argv of [["--format"], ["--format="], ["--format", "yaml"], ["--format=yaml"], ["--format", "--x"], ["--formta", "text"], ["unexpected"]]) {
     const parsed = parseFormatArgs(argv);
     assert.equal(parsed.ok, false);
     assert.match(parsed.error, /Usage: env-probe \[--format json\|text\]/);
