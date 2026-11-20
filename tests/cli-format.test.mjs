@@ -55,6 +55,27 @@ test("CLI invalid/missing format values produce non-zero stderr usage with no st
   }
 });
 
+test("CLI rejects unknown flags and positional args without probing", () => {
+  const dir = mkdtempSync(join(tmpdir(), "pi-env-probe-invalid-args-"));
+  const registerUrl = pathToFileURL(fileURLToPath(new URL("./helpers/probe-count-register.mjs", import.meta.url))).href;
+  try {
+    for (const [name, args] of [["unknown-flag", ["--formta", "text"]], ["positional", ["unexpected"]]]) {
+      const countFile = join(dir, `${name}.txt`);
+      const res = spawnSync(process.execPath, ["--import", registerUrl, cliPath, ...args], {
+        cwd: repoRoot,
+        encoding: "utf8",
+        env: { ...process.env, PI_ENV_PROBE_COUNT_OUT: countFile },
+      });
+      assert.notEqual(res.status, 0);
+      assert.match(res.stderr, /Usage: env-probe \[--format json\|text\]/);
+      assert.equal(res.stdout, "");
+      assert.equal(Number(readFileSync(countFile, "utf8").trim()), 0, `probe() must not run for ${name}`);
+    }
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test("CLI single-probe-call invariant for json and text modes", () => {
   const dir = mkdtempSync(join(tmpdir(), "pi-env-probe-count-"));
   const registerUrl = pathToFileURL(fileURLToPath(new URL("./helpers/probe-count-register.mjs", import.meta.url))).href;
