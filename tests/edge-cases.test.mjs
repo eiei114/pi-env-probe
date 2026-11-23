@@ -98,6 +98,22 @@ test("empty environment degrades shell and runtime fields", () => {
   assert.doesNotThrow(() => JSON.parse(JSON.stringify(result)));
 });
 
+for (const [shell, expected] of [
+  ["/usr/bin/pwsh", "pwsh"],
+  [String.raw`C:\Program Files\PowerShell\7\PWSH.EXE`, "pwsh"],
+  [String.raw`C:\Windows\System32\cmd.exe`, "cmd"],
+  ["/bin/bash", "bash"],
+  ["/bin/zsh", "zsh"],
+  ["/opt/bash-tools/bin/fish", null],
+  ["/usr/bin/zsh-wrapper", null],
+]) {
+  test(`SHELL=${shell} reports ${expected}`, () => {
+    withEnv({ SHELL: shell }, () => {
+      assert.equal(probe().shell, expected);
+    });
+  });
+}
+
 test("subprocess timeout returns null for version fields without crashing", () => {
   const result = spawnSync(
     process.execPath,
