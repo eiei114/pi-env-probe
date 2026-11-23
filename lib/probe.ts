@@ -48,12 +48,12 @@ function createEmptyResult(): ProbeResult {
 }
 
 /**
- * Run a version probe command and return trimmed stdout, or null on failure.
+ * Return stdout with trailing whitespace removed, or null on failure or blank output.
  */
 function probeVersion(command: string): string | null {
   try {
     const stdout = execSync(command, EXEC_OPTS);
-    return stdout.trimEnd();
+    return stdout.trimEnd() || null;
   } catch {
     return null;
   }

@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+
+- Treat blank runtime version output as unavailable and try `python` on POSIX when `python3` returns no version.
+
 ## [0.2.0] - 2026-11-18
 
 ### Added
