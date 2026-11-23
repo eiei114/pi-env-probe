@@ -42,6 +42,8 @@
 | `encoding` | `string` | Detected locale encoding from `LC_CTYPE` / `LANG`, defaults to `"utf8"` |
 | `risks` | `string[]` | Ordered list of identified issues, empty `[]` when none |
 
+Empty or whitespace-only version output is treated as unavailable. On POSIX, if `python3 --version` fails or returns blank output, the probe tries `python --version`.
+
 ### Risk strings
 
 The `risks` array may contain any of the following strings, in order: shell issues first, runtime issues second, path issues last.

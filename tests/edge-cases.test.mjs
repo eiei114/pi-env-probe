@@ -16,6 +16,9 @@ const timeoutHarnessPath = fileURLToPath(
 const isolationHarnessPath = fileURLToPath(
   new URL("./helpers/probe-isolation-harness.mjs", import.meta.url),
 );
+const blankVersionHarnessPath = fileURLToPath(
+  new URL("./helpers/probe-blank-version-harness.mjs", import.meta.url),
+);
 const neverThrowsHarnessPath = fileURLToPath(
   new URL("./helpers/probe-never-throws-harness.mjs", import.meta.url),
 );
@@ -127,6 +130,27 @@ test("one failed runtime probe does not block other runtime probes", () => {
   assert.ok(parsed.node_version !== null, "node probe should still succeed");
   assert.equal(parsed.python_version, null, "python probe should fail gracefully");
   assert.ok(parsed.risks.includes("python_not_available"));
+});
+
+test("blank runtime output is unavailable and blank POSIX python3 falls back to python", () => {
+  const child = spawnSync(
+    process.execPath,
+    [
+      "--experimental-test-module-mocks",
+      "--experimental-strip-types",
+      blankVersionHarnessPath,
+    ],
+    { cwd: repoRoot, encoding: "utf8" },
+  );
+  assert.equal(child.status, 0, child.stderr || child.stdout);
+  const { result, pythonCommands } = JSON.parse(child.stdout);
+  assert.equal(result.node_version, null);
+  assert.ok(result.risks.includes("node_not_available"));
+  assert.equal(result.bun_version, "  1.3.0");
+  assert.ok(!result.risks.includes("bun_not_available"));
+  assert.deepEqual(pythonCommands, ["python3 --version", "python --version"]);
+  assert.equal(result.python_version, "Python 3.12.0");
+  assert.ok(!result.risks.includes("python_not_available"));
 });
 
 test("probe never throws when subprocess and filesystem probes all fail", () => {
