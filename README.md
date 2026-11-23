@@ -11,11 +11,11 @@
 
 <a href="https://buymeacoffee.com/ekawano114m"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" width="217" height="60"></a>
 
-> Cross-platform environment diagnostics for Pi — shell, PATH, runtime, encoding, and non-ASCII path risks in compact JSON.
+> Cross-platform environment diagnostics for Pi — shell, PATH, runtime, encoding, and non-ASCII path risks.
 
 ## What this is
 
-`pi-env-probe` collects lightweight environment diagnostics and returns them as compact JSON. Use it from the CLI, as a Pi slash command, or import `probe()` in your own tooling.
+`pi-env-probe` collects lightweight environment diagnostics. Use it from the CLI, as a Pi slash command, or import `probe()` to get the result object in your own tooling.
 
 ## Features
 
@@ -23,7 +23,7 @@
 - Reports whether common shells are available in `PATH`
 - Detects non-ASCII file/folder names in the current working directory
 - Returns the platform path separator (`;` on Windows, `:` on POSIX)
-- Aggregates identified risks into a sorted array
+- Lists identified risks in check order: shell, then runtime, then path
 - Never throws from `probe()` — subprocess failures degrade to `false` / `null`
 
 ## Probe result fields
@@ -46,7 +46,7 @@ Empty or whitespace-only version output is treated as unavailable. On POSIX, if 
 
 ### Risk strings
 
-The `risks` array may contain any of the following strings, in order: shell issues first, runtime issues second, path issues last.
+The `risks` array follows the check order shown below, not alphabetical order: shell issues first, runtime issues second, path issues last. Only risks detected by the probe are included.
 
 | Risk string | Condition |
 |---|---|
@@ -116,7 +116,7 @@ node bin/env-probe.js --format=text
 
 ### CLI output modes
 
-- **Default / `--format json` / `--format=json`**: emits the existing compact JSON probe result (unchanged shape and behavior).
+- **Default / `--format json` / `--format=json`**: writes one JSON document per successful CLI invocation to stdout, with two-space indentation and a trailing newline. It is not JSON Lines: read the full stdout stream and parse it once after EOF, not line by line or chunk by chunk.
 - **`--format text` / `--format=text`**: emits a human-readable summary derived only from that same probe result (one `probe()` call per invocation). It reports the detected shell state, Node.js/Bun/Python availability and versions when available, and findings from existing risk codes in shell → runtime → path order.
 - **Detection limits**: text mode summarizes only the checks `probe()` already performs (shell availability, Node.js/Bun/Python availability, and non-ASCII names directly under the current working directory). It does not claim the entire environment is safe, does not reveal filenames/paths or raw environment/encoding/subprocess values, and does not perform repairs or additional probes.
 - **Usage errors**: a missing or unsupported `--format` value, unknown flag, or unexpected positional argument writes a short usage error to stderr, exits non-zero, and writes no diagnostic output to stdout.
@@ -143,7 +143,7 @@ npm install
 npm run typecheck
 npm test
 node bin/env-probe.js
-node bin/env-probe.js | node -e "process.stdin.on('data',d=>{JSON.parse(d);console.log('valid JSON')})"
+node bin/env-probe.js | node -e "let json = ''; process.stdin.setEncoding('utf8').on('data', chunk => { json += chunk; }).on('end', () => { JSON.parse(json); console.log('valid JSON'); });"
 npm pack --dry-run
 ```
 
