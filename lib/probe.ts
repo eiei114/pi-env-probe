@@ -88,8 +88,11 @@ function detectEncoding(): string {
 function detectShell(): ShellName {
   const shellEnv = process.env.SHELL;
   if (shellEnv) {
-    if (shellEnv.includes("bash")) return "bash";
-    if (shellEnv.includes("zsh")) return "zsh";
+    const executable = shellEnv.split(/[\\/]/).pop()?.toLowerCase().replace(/\.exe$/, "");
+    if (executable === "bash" || executable === "zsh" ||
+        executable === "pwsh" || executable === "cmd") {
+      return executable;
+    }
     return null;
   }
 
