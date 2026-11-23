@@ -135,11 +135,7 @@ test("one failed runtime probe does not block other runtime probes", () => {
 test("blank runtime output is unavailable and blank POSIX python3 falls back to python", () => {
   const child = spawnSync(
     process.execPath,
-    [
-      "--experimental-test-module-mocks",
-      "--experimental-strip-types",
-      blankVersionHarnessPath,
-    ],
+    ["--experimental-strip-types", blankVersionHarnessPath],
     { cwd: repoRoot, encoding: "utf8" },
   );
   assert.equal(child.status, 0, child.stderr || child.stdout);
