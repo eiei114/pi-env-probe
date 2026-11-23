@@ -2,13 +2,13 @@
   "schema_version": 1,
   "verification_contract": "pi-sdk-behavior-v2",
   "sdk_versions": {
-    "@earendil-works/pi-agent-core": "1.5.2",
-    "@earendil-works/pi-ai": "1.5.2",
-    "@earendil-works/pi-coding-agent": "1.5.2",
-    "@earendil-works/pi-tui": "1.5.2"
+    "@earendil-works/pi-agent-core": "1.6.0",
+    "@earendil-works/pi-ai": "1.6.0",
+    "@earendil-works/pi-coding-agent": "1.6.0",
+    "@earendil-works/pi-tui": "1.6.0"
   },
   "platform": "win32",
-  "model_inference": "none; actual Pi 1.5.2 host loads the extension and handles /env-probe RPC input",
+  "model_inference": "none; actual Pi 1.6.0 host loads the extension and handles /env-probe RPC input",
   "unhandled_errors": 0,
   "extension_load_errors": 0,
   "cases": [
@@ -32,12 +32,12 @@
       "command": "npm run smoke:pi",
       "exit_code": 0,
       "passed": true,
-      "evidence": "{\"type\":\"extension_ui_request\",\"id\":\"a58ebf85-27c2-46b1-98cd-52d693c808fa\",\"method\":\"notify\",\"message\":\"env-probe results collected\",\"notifyType\":\"info\"}\n{\"id\":\"command-registration\",\"type\":\"response\",\"command\":\"get_commands\",\"success\":true,\"data\":{\"commands\":[{\"name\":\"env-probe\",\"description\":\"Run environment diagnostics (shell, PATH, encoding, non-ASCII path risks)\",\"source\":\"extension\",\"sourceInfo\":{\"path\":\"<repo>\\\\extensions\\\\index.ts\",\"source\":\"cli\",\"scope\":\"temporary\",\"origin\":\"top-level\"}}]}}\n{\"id\":\"feature-response\",\"type\":\"response\",\"command\":\"prompt\",\"success\":true,\"data\":{\"disposition\":\"handled\"}}\n\n{\n  \"shell\": \"cmd\",\n  \"shell_available\": true,\n  \"bash_in_path\": true,\n  \"pwsh_in_path\": true,\n  \"path_separator\": \";\",\n  \"node_version\": \"v26.12.1\",\n  \"bun_version\": \"1.4.4\",\n  \"python_version\": \"Python 3.14.7\",\n  \"encoding\": \"utf8\",\n  \"has_non_ascii_paths_in_cwd\": false,\n  \"risks\": []\n}\n",
+      "evidence": "{\"type\":\"extension_ui_request\",\"id\":\"bb18c45a-bd65-4f09-9e29-20c1701a2304\",\"method\":\"notify\",\"message\":\"env-probe results collected\",\"notifyType\":\"info\"}\n{\"id\":\"command-registration\",\"type\":\"response\",\"command\":\"get_commands\",\"success\":true,\"data\":{\"commands\":[{\"name\":\"env-probe\",\"description\":\"Run environment diagnostics (shell, PATH, encoding, non-ASCII path risks)\",\"source\":\"extension\",\"sourceInfo\":{\"path\":\"<repo>\\\\extensions\\\\index.ts\",\"source\":\"cli\",\"scope\":\"temporary\",\"origin\":\"top-level\"}}]}}\n{\"id\":\"feature-response\",\"type\":\"response\",\"command\":\"prompt\",\"success\":true,\"data\":{\"disposition\":\"handled\"}}\n\n{\n  \"shell\": \"bash\",\n  \"shell_available\": true,\n  \"bash_in_path\": true,\n  \"pwsh_in_path\": true,\n  \"path_separator\": \";\",\n  \"node_version\": \"v26.12.1\",\n  \"bun_version\": \"1.4.5\",\n  \"python_version\": \"Python 3.14.7\",\n  \"encoding\": \"ja_JP.UTF-8\",\n  \"has_non_ascii_paths_in_cwd\": false,\n  \"risks\": []\n}\n",
       "assertions": [
         {
           "id": "feature_response",
           "expected": "The actual Pi host handles /env-probe and emits a complete diagnostics JSON object",
-          "observed": "{\"prompt\":{\"id\":\"feature-response\",\"type\":\"response\",\"command\":\"prompt\",\"success\":true,\"data\":{\"disposition\":\"handled\"}},\"probe_result\":{\"shell\":\"cmd\",\"shell_available\":true,\"bash_in_path\":true,\"pwsh_in_path\":true,\"path_separator\":\";\",\"node_version\":\"v26.12.1\",\"bun_version\":\"1.4.4\",\"python_version\":\"Python 3.14.7\",\"encoding\":\"utf8\",\"has_non_ascii_paths_in_cwd\":false,\"risks\":[]},\"passed\":true}",
+          "observed": "{\"prompt\":{\"id\":\"feature-response\",\"type\":\"response\",\"command\":\"prompt\",\"success\":true,\"data\":{\"disposition\":\"handled\"}},\"probe_result\":{\"shell\":\"bash\",\"shell_available\":true,\"bash_in_path\":true,\"pwsh_in_path\":true,\"path_separator\":\";\",\"node_version\":\"v26.12.1\",\"bun_version\":\"1.4.5\",\"python_version\":\"Python 3.14.7\",\"encoding\":\"ja_JP.UTF-8\",\"has_non_ascii_paths_in_cwd\":false,\"risks\":[]},\"passed\":true}",
           "passed": true
         }
       ]
@@ -62,24 +62,24 @@
       "command": "npm run smoke:pi",
       "exit_code": 0,
       "passed": true,
-      "evidence": "{\"first_process\":{\"pid\":27180,\"exit_code\":0,\"passed\":true,\"evidence\":\"{\\\"type\\\":\\\"extension_ui_request\\\",\\\"id\\\":\\\"f3d59b7d-6935-4891-8732-881a360838ca\\\",\\\"method\\\":\\\"notify\\\",\\\"message\\\":\\\"env-probe results collected\\\",\\\"notifyType\\\":\\\"info\\\"}\\n{\\\"id\\\":\\\"command-registration\\\",\\\"type\\\":\\\"response\\\",\\\"command\\\":\\\"get_commands\\\",\\\"success\\\":true,\\\"data\\\":{\\\"commands\\\":[{\\\"name\\\":\\\"env-probe\\\",\\\"description\\\":\\\"Run environment diagnostics (shell, PATH, encoding, non-ASCII path risks)\\\",\\\"source\\\":\\\"extension\\\",\\\"sourceInfo\\\":{\\\"path\\\":\\\"<repo>\\\\\\\\extensions\\\\\\\\index.ts\\\",\\\"source\\\":\\\"cli\\\",\\\"scope\\\":\\\"temporary\\\",\\\"origin\\\":\\\"top-level\\\"}}]}}\\n{\\\"id\\\":\\\"feature-response\\\",\\\"type\\\":\\\"response\\\",\\\"command\\\":\\\"prompt\\\",\\\"success\\\":true,\\\"data\\\":{\\\"disposition\\\":\\\"handled\\\"}}\\n\\n{\\n  \\\"shell\\\": \\\"cmd\\\",\\n  \\\"shell_available\\\": true,\\n  \\\"bash_in_path\\\": true,\\n  \\\"pwsh_in_path\\\": true,\\n  \\\"path_separator\\\": \\\";\\\",\\n  \\\"node_version\\\": \\\"v26.12.1\\\",\\n  \\\"bun_version\\\": \\\"1.4.4\\\",\\n  \\\"python_version\\\": \\\"Python 3.14.7\\\",\\n  \\\"encoding\\\": \\\"utf8\\\",\\n  \\\"has_non_ascii_paths_in_cwd\\\": false,\\n  \\\"risks\\\": []\\n}\\n\"},\"second_process\":{\"pid\":44440,\"exit_code\":0,\"passed\":true,\"evidence\":\"{\\\"type\\\":\\\"extension_ui_request\\\",\\\"id\\\":\\\"f456ec3c-bb9c-4b5d-beb4-c085ee6a3c4b\\\",\\\"method\\\":\\\"notify\\\",\\\"message\\\":\\\"env-probe results collected\\\",\\\"notifyType\\\":\\\"info\\\"}\\n{\\\"id\\\":\\\"command-registration\\\",\\\"type\\\":\\\"response\\\",\\\"command\\\":\\\"get_commands\\\",\\\"success\\\":true,\\\"data\\\":{\\\"commands\\\":[{\\\"name\\\":\\\"env-probe\\\",\\\"description\\\":\\\"Run environment diagnostics (shell, PATH, encoding, non-ASCII path risks)\\\",\\\"source\\\":\\\"extension\\\",\\\"sourceInfo\\\":{\\\"path\\\":\\\"<repo>\\\\\\\\extensions\\\\\\\\index.ts\\\",\\\"source\\\":\\\"cli\\\",\\\"scope\\\":\\\"temporary\\\",\\\"origin\\\":\\\"top-level\\\"}}]}}\\n{\\\"id\\\":\\\"feature-response\\\",\\\"type\\\":\\\"response\\\",\\\"command\\\":\\\"prompt\\\",\\\"success\\\":true,\\\"data\\\":{\\\"disposition\\\":\\\"handled\\\"}}\\n\\n{\\n  \\\"shell\\\": \\\"cmd\\\",\\n  \\\"shell_available\\\": true,\\n  \\\"bash_in_path\\\": true,\\n  \\\"pwsh_in_path\\\": true,\\n  \\\"path_separator\\\": \\\";\\\",\\n  \\\"node_version\\\": \\\"v26.12.1\\\",\\n  \\\"bun_version\\\": \\\"1.4.4\\\",\\n  \\\"python_version\\\": \\\"Python 3.14.7\\\",\\n  \\\"encoding\\\": \\\"utf8\\\",\\n  \\\"has_non_ascii_paths_in_cwd\\\": false,\\n  \\\"risks\\\": []\\n}\\n\"}}",
+      "evidence": "{\"first_process\":{\"pid\":89552,\"exit_code\":0,\"passed\":true,\"evidence\":\"{\\\"type\\\":\\\"extension_ui_request\\\",\\\"id\\\":\\\"5607b87e-f6cf-430c-8c0d-ec1cfcded27e\\\",\\\"method\\\":\\\"notify\\\",\\\"message\\\":\\\"env-probe results collected\\\",\\\"notifyType\\\":\\\"info\\\"}\\n{\\\"id\\\":\\\"command-registration\\\",\\\"type\\\":\\\"response\\\",\\\"command\\\":\\\"get_commands\\\",\\\"success\\\":true,\\\"data\\\":{\\\"commands\\\":[{\\\"name\\\":\\\"env-probe\\\",\\\"description\\\":\\\"Run environment diagnostics (shell, PATH, encoding, non-ASCII path risks)\\\",\\\"source\\\":\\\"extension\\\",\\\"sourceInfo\\\":{\\\"path\\\":\\\"<repo>\\\\\\\\extensions\\\\\\\\index.ts\\\",\\\"source\\\":\\\"cli\\\",\\\"scope\\\":\\\"temporary\\\",\\\"origin\\\":\\\"top-level\\\"}}]}}\\n{\\\"id\\\":\\\"feature-response\\\",\\\"type\\\":\\\"response\\\",\\\"command\\\":\\\"prompt\\\",\\\"success\\\":true,\\\"data\\\":{\\\"disposition\\\":\\\"handled\\\"}}\\n\\n{\\n  \\\"shell\\\": \\\"bash\\\",\\n  \\\"shell_available\\\": true,\\n  \\\"bash_in_path\\\": true,\\n  \\\"pwsh_in_path\\\": true,\\n  \\\"path_separator\\\": \\\";\\\",\\n  \\\"node_version\\\": \\\"v26.12.1\\\",\\n  \\\"bun_version\\\": \\\"1.4.5\\\",\\n  \\\"python_version\\\": \\\"Python 3.14.7\\\",\\n  \\\"encoding\\\": \\\"ja_JP.UTF-8\\\",\\n  \\\"has_non_ascii_paths_in_cwd\\\": false,\\n  \\\"risks\\\": []\\n}\\n\"},\"second_process\":{\"pid\":121256,\"exit_code\":0,\"passed\":true,\"evidence\":\"{\\\"type\\\":\\\"extension_ui_request\\\",\\\"id\\\":\\\"ddaf3ea1-a51f-4dd2-b349-923cedc7e6bb\\\",\\\"method\\\":\\\"notify\\\",\\\"message\\\":\\\"env-probe results collected\\\",\\\"notifyType\\\":\\\"info\\\"}\\n{\\\"id\\\":\\\"command-registration\\\",\\\"type\\\":\\\"response\\\",\\\"command\\\":\\\"get_commands\\\",\\\"success\\\":true,\\\"data\\\":{\\\"commands\\\":[{\\\"name\\\":\\\"env-probe\\\",\\\"description\\\":\\\"Run environment diagnostics (shell, PATH, encoding, non-ASCII path risks)\\\",\\\"source\\\":\\\"extension\\\",\\\"sourceInfo\\\":{\\\"path\\\":\\\"<repo>\\\\\\\\extensions\\\\\\\\index.ts\\\",\\\"source\\\":\\\"cli\\\",\\\"scope\\\":\\\"temporary\\\",\\\"origin\\\":\\\"top-level\\\"}}]}}\\n{\\\"id\\\":\\\"feature-response\\\",\\\"type\\\":\\\"response\\\",\\\"command\\\":\\\"prompt\\\",\\\"success\\\":true,\\\"data\\\":{\\\"disposition\\\":\\\"handled\\\"}}\\n\\n{\\n  \\\"shell\\\": \\\"bash\\\",\\n  \\\"shell_available\\\": true,\\n  \\\"bash_in_path\\\": true,\\n  \\\"pwsh_in_path\\\": true,\\n  \\\"path_separator\\\": \\\";\\\",\\n  \\\"node_version\\\": \\\"v26.12.1\\\",\\n  \\\"bun_version\\\": \\\"1.4.5\\\",\\n  \\\"python_version\\\": \\\"Python 3.14.7\\\",\\n  \\\"encoding\\\": \\\"ja_JP.UTF-8\\\",\\n  \\\"has_non_ascii_paths_in_cwd\\\": false,\\n  \\\"risks\\\": []\\n}\\n\"}}",
       "assertions": [
         {
           "id": "reloaded_extension_registered",
           "expected": "A distinct second actual Pi process registers /env-probe",
-          "observed": "{\"process_id\":44440,\"listing\":{\"listing\":{\"id\":\"command-registration\",\"type\":\"response\",\"command\":\"get_commands\",\"success\":true,\"data\":{\"commands\":[{\"name\":\"env-probe\",\"description\":\"Run environment diagnostics (shell, PATH, encoding, non-ASCII path risks)\",\"source\":\"extension\",\"sourceInfo\":{\"path\":\"<repo>\\\\extensions\\\\index.ts\",\"source\":\"cli\",\"scope\":\"temporary\",\"origin\":\"top-level\"}}]}},\"command\":{\"name\":\"env-probe\",\"description\":\"Run environment diagnostics (shell, PATH, encoding, non-ASCII path risks)\",\"source\":\"extension\",\"sourceInfo\":{\"path\":\"<repo>\\\\extensions\\\\index.ts\",\"source\":\"cli\",\"scope\":\"temporary\",\"origin\":\"top-level\"}}}}",
+          "observed": "{\"process_id\":121256,\"listing\":{\"listing\":{\"id\":\"command-registration\",\"type\":\"response\",\"command\":\"get_commands\",\"success\":true,\"data\":{\"commands\":[{\"name\":\"env-probe\",\"description\":\"Run environment diagnostics (shell, PATH, encoding, non-ASCII path risks)\",\"source\":\"extension\",\"sourceInfo\":{\"path\":\"<repo>\\\\extensions\\\\index.ts\",\"source\":\"cli\",\"scope\":\"temporary\",\"origin\":\"top-level\"}}]}},\"command\":{\"name\":\"env-probe\",\"description\":\"Run environment diagnostics (shell, PATH, encoding, non-ASCII path risks)\",\"source\":\"extension\",\"sourceInfo\":{\"path\":\"<repo>\\\\extensions\\\\index.ts\",\"source\":\"cli\",\"scope\":\"temporary\",\"origin\":\"top-level\"}}}}",
           "passed": true
         },
         {
           "id": "reloaded_feature_response",
           "expected": "The distinct second Pi process handles /env-probe and emits complete diagnostics JSON",
-          "observed": "{\"process_id\":44440,\"prompt\":{\"id\":\"feature-response\",\"type\":\"response\",\"command\":\"prompt\",\"success\":true,\"data\":{\"disposition\":\"handled\"}},\"probe_result\":{\"shell\":\"cmd\",\"shell_available\":true,\"bash_in_path\":true,\"pwsh_in_path\":true,\"path_separator\":\";\",\"node_version\":\"v26.12.1\",\"bun_version\":\"1.4.4\",\"python_version\":\"Python 3.14.7\",\"encoding\":\"utf8\",\"has_non_ascii_paths_in_cwd\":false,\"risks\":[]},\"passed\":true}",
+          "observed": "{\"process_id\":121256,\"prompt\":{\"id\":\"feature-response\",\"type\":\"response\",\"command\":\"prompt\",\"success\":true,\"data\":{\"disposition\":\"handled\"}},\"probe_result\":{\"shell\":\"bash\",\"shell_available\":true,\"bash_in_path\":true,\"pwsh_in_path\":true,\"path_separator\":\";\",\"node_version\":\"v26.12.1\",\"bun_version\":\"1.4.5\",\"python_version\":\"Python 3.14.7\",\"encoding\":\"ja_JP.UTF-8\",\"has_non_ascii_paths_in_cwd\":false,\"risks\":[]},\"passed\":true}",
           "passed": true
         },
         {
           "id": "clean_shutdown",
           "expected": "Both actual Pi processes exit cleanly; the second exits zero without unhandled or shutdown errors",
-          "observed": "{\"actual_process_count\":2,\"first_process_id\":27180,\"first_process_exit_code\":0,\"first_process_exited\":true,\"first_process_passed\":true,\"first_process_errors\":false,\"second_process_id\":44440,\"second_process_exit_code\":0,\"second_process_exited\":true,\"second_process_errors\":false}",
+          "observed": "{\"actual_process_count\":2,\"first_process_id\":89552,\"first_process_exit_code\":0,\"first_process_exited\":true,\"first_process_passed\":true,\"first_process_errors\":false,\"second_process_id\":121256,\"second_process_exit_code\":0,\"second_process_exited\":true,\"second_process_errors\":false}",
           "passed": true
         }
       ]
@@ -89,12 +89,12 @@
       "command": "npm run smoke:pi",
       "exit_code": 0,
       "passed": true,
-      "evidence": "1.5.2\n",
+      "evidence": "1.6.0\n",
       "assertions": [
         {
           "id": "native_shell_boundary",
           "expected": "The native host shell launches the locally pinned Pi CLI and returns its exact version",
-          "observed": "{\"exit_code\":0,\"process_exited\":true,\"output\":\"1.5.2\",\"expectedVersion\":\"1.5.2\"}",
+          "observed": "{\"exit_code\":0,\"process_exited\":true,\"output\":\"1.6.0\",\"expectedVersion\":\"1.6.0\"}",
           "passed": true
         }
       ]
