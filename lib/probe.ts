@@ -82,6 +82,14 @@ function detectEncoding(): string {
   return process.env.LC_CTYPE || process.env.LANG || "utf8";
 }
 
+/** Classify a Windows ComSpec value by its executable, not its directories. */
+export function detectComSpecShell(comSpec: string): "cmd" | "pwsh" | null {
+  const executable = comSpec.split(/[\\/]/).pop()?.toLowerCase().replace(/\.exe$/, "");
+  if (executable === "cmd") return "cmd";
+  if (executable === "powershell" || executable === "pwsh") return "pwsh";
+  return null;
+}
+
 /**
  * Detect the current shell name.
  */
@@ -99,9 +107,8 @@ function detectShell(): ShellName {
   if (process.platform === "win32") {
     const comSpec = process.env.ComSpec || process.env.COMSPEC;
     if (comSpec) {
-      const lower = comSpec.toLowerCase();
-      if (lower.includes("powershell") || lower.includes("pwsh")) return "pwsh";
-      if (lower.includes("cmd")) return "cmd";
+      const shell = detectComSpecShell(comSpec);
+      if (shell !== null) return shell;
     }
   }
 
